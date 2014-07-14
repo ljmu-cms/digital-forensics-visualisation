@@ -1,0 +1,6 @@
+1) Install Leap Skeletal
+2) Under Configuration Properties -> VC++ Directories -> Include directories add a link to [LeapSDK]\include
+3) Under Configuration Properties -> VC++ Directories -> Library directories add a link to [LeapSDK]\lib\x86
+4) Add Leap.dll (Or Leapd.dll in debug mode) under Linker -> Input
+5) Copy Leap.dll and Leapd.dll to ogre SDK/bin/debug or release or both
+ 

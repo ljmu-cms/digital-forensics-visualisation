@@ -3,6 +3,7 @@
 
 
 #include "BaseApplication.h"
+#include "SampleListener.h"
 #include <Terrain/OgreTerrain.h>
 #include <Terrain/OgreTerrainGroup.h>
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
@@ -15,7 +16,16 @@ class DigitalForensicsVisualisation : public BaseApplication
 
 private:
 
-	bool processUnbufferedInput(const Ogre::FrameEvent& evt);	
+	SampleListener leapSampleListener;
+	Controller leapController;
+	bool processUnbufferedInput(const Ogre::FrameEvent& evt);
+	Ogre::SceneNode* handNode;
+	Ogre::SceneNode *palmNode;
+	Ogre::SceneNode* fingersNode;
+	float previousFramePitch;
+	float previousFrameYaw;
+	float previousFrameRoll;
+	bool handOrientationFlag;
 
 public:
     DigitalForensicsVisualisation(void);

@@ -1,28 +1,71 @@
 #include "DigitalForensicsVisualisation.h"
-#include "SampleListener.h"
+
 
 using std::cout;
 using std::endl;
 
+char* nodeName;
+
 //-------------------------------------------------------------------------------------
 DigitalForensicsVisualisation::DigitalForensicsVisualisation(void)
 {
+	previousFramePitch = previousFrameYaw = previousFrameRoll = 0;
+	handOrientationFlag = false;
+	nodeName = (char*) malloc(3);
 }
 //-------------------------------------------------------------------------------------
 DigitalForensicsVisualisation::~DigitalForensicsVisualisation(void)
 {
+	free(nodeName);
 }
 
 //-------------------------------------------------------------------------------------
 void DigitalForensicsVisualisation::createScene(void)
 {
+
+	
+	// leap controller and listener objects
+	leapController.addListener(leapSampleListener);
+	leapController.setPolicyFlags(Leap::Controller::POLICY_BACKGROUND_FRAMES);
+	leapSampleListener.onFrame(leapController);
+	// end leap
+
+
+
 	mSceneMgr->setAmbientLight(Ogre::ColourValue(0.25, 0.25, 0.25));
  
-    Ogre::Entity* ninjaEntity = mSceneMgr->createEntity("Ninja", "ninja.mesh");
-    Ogre::SceneNode *node = mSceneMgr->getRootSceneNode()->createChildSceneNode("NinjaNode");
-    node->attachObject(ninjaEntity);
- 
+	//hand
+	handNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("HandNode");
+	handNode->setPosition (0, -300, -500);
+	// palm
+	Ogre::Entity* palm = mSceneMgr->createEntity("palm","sphere.mesh");
+	palmNode = handNode->createChildSceneNode("PalmNode");
+	
+	palmNode->attachObject(palm);
+	palmNode->scale(.1,.1,.1);
+	
+	
+	// fingers
+	//Ogre::Entity* fingers = new Ogre::Entity[5];
+	fingersNode = handNode->createChildSceneNode("FingersNode");
+	
+	Ogre::Entity* bone;
+	char str[3];
 
+	for (int i = 0; i < 20; ++i)
+	{
+		sprintf(str, "%d", i);
+		bone = mSceneMgr->createEntity(str,"sphere.mesh");
+		Ogre::SceneNode* tempNode = fingersNode->createChildSceneNode(str);
+		tempNode->attachObject(bone);
+		tempNode->scale(.1,.1,.1);
+
+		//fingers.InsertFirst(*bone);
+	
+	}
+
+
+ 
     Ogre::Light* pointLight = mSceneMgr->createLight("pointLight");
     pointLight->setType(Ogre::Light::LT_POINT);
     pointLight->setPosition(Ogre::Vector3(250, 150, 250));
@@ -35,7 +78,7 @@ void DigitalForensicsVisualisation::createViewports(void)
 {
 	    // Create one viewport, entire window
     Ogre::Viewport* vp = mWindow->addViewport(mCamera);
-    vp->setBackgroundColour(Ogre::ColourValue(.2,.6,.3));
+    vp->setBackgroundColour(Ogre::ColourValue(.2,.1,.3));
     // Alter the camera aspect ratio to match the viewport
     mCamera->setAspectRatio(Ogre::Real(vp->getActualWidth()) / Ogre::Real(vp->getActualHeight()));  
 }
@@ -44,71 +87,106 @@ void DigitalForensicsVisualisation::createViewports(void)
 
 bool DigitalForensicsVisualisation::processUnbufferedInput(const Ogre::FrameEvent& evt)
 {
-    static bool mMouseDown = false;     // If a mouse button is depressed
-    static Ogre::Real mToggle = 0.0;    // The time left until next toggle
-    static Ogre::Real mRotate = 0.13;   // The rotate constant
-    static Ogre::Real mMove = 250;      // The movement constant
+
+
+	//leap
+	const Frame frame = leapController.frame();
+	
+
+	
+	Leap::Hand rightMost = frame.hands().rightmost();
+    palmNode->setPosition(rightMost.palmPosition().x, rightMost.palmPosition().y, rightMost.palmPosition().z); // between 100 and 250
+
+	
+	
+	
+	if (!frame.hands().isEmpty() && !handOrientationFlag) 
+	{
+		palmNode->resetOrientation();
+		
+		previousFramePitch = rightMost.direction().pitch() * RAD_TO_DEG;
+		previousFrameYaw = rightMost.direction().yaw() * RAD_TO_DEG;
+		previousFrameRoll = rightMost.palmNormal().roll() * RAD_TO_DEG;
+
+		handOrientationFlag = true;	
+	}
+	else if (handOrientationFlag && frame.hands().isEmpty() )
+	{
+		handOrientationFlag = false;
+	}
+
+
+	if (!frame.hands().isEmpty())
+	{
+		float pitchValue = rightMost.direction().pitch() * RAD_TO_DEG;
+		palmNode->pitch((Ogre::Radian) (pitchValue - previousFramePitch) );
+
+		float rollValue = rightMost.palmNormal().roll() * RAD_TO_DEG;
+		palmNode->roll((Ogre::Radian) (rollValue - previousFrameRoll) );
+
+		float yawValue = rightMost.direction().yaw() * RAD_TO_DEG;
+		palmNode->yaw((Ogre::Radian) (yawValue - previousFrameYaw) );
+
+		/*char* dummy = (char*) malloc(64);
+		sprintf (dummy, "pitch: %f, yaw: %f, roll: %f\n", pitchValue, yawValue, rollValue); 
+		OutputDebugString (dummy);
+		free(dummy);*/
  
-    bool currMouse = mMouse->getMouseState().buttonDown(OIS::MB_Left);
+		previousFramePitch = rightMost.direction().pitch() * RAD_TO_DEG;
+		previousFrameYaw = rightMost.direction().yaw() * RAD_TO_DEG;
+		previousFrameRoll = rightMost.palmNormal().roll() * RAD_TO_DEG;
+
+
+		// Get fingers
+		const FingerList fingers = rightMost.fingers();
+		int i = 0;
+		int index = 0; //between 0 and 19 (finger bones)
+		for (FingerList::const_iterator fl = fingers.begin(); fl != fingers.end(); ++fl, ++i) {
+			
+			const Finger finger = *fl;
+			/*std::cout << std::string(4, ' ') <<  fingerNames[finger.type()]
+					<< " finger, id: " << finger.id()
+					<< ", length: " << finger.length()
+					<< "mm, width: " << finger.width() << std::endl;*/
+
+		/*			char* dummy = (char*) malloc(128);
+					sprintf (dummy, "finger id: %d, length: %f, width: %f\n", finger.id(), finger.length(), finger.width()); 
+					OutputDebugString (dummy);
+					free(dummy);*/
+
+			// Get finger bones
+			for (int b = 0; b < 4; ++b, ++index) {
+			Bone::Type boneType = static_cast<Bone::Type>(b);
+			Bone bone = finger.bone(boneType);
+			/*std::cout << std::string(6, ' ') <<  boneNames[boneType]
+						<< " bone, start: " << bone.prevJoint()
+						<< ", end: " << bone.nextJoint()
+						<< ", direction: " << bone.direction() << std::endl;*/
+						
+	/*		char* dummy = (char*) malloc(128);
+			sprintf (dummy, "#%d.%d  bone x: %f, bone y: %f, bone z: %f\n", i , b, bone.center().x, bone.center().y, bone.center().z); 
+			OutputDebugString (dummy);
+			free(dummy);*/
+
+			
+			sprintf(nodeName,"%d",index);
+			fingersNode->getChild(nodeName)->setPosition(bone.center().x, bone.center().y, bone.center().z);
+			//fingersNode->getChild(nodeName)->_getDerivedOrientation().x
+			
+			//fingersNode->lookAt(Ogre::Vector3(bone.direction().x, bone.direction().y, bone.direction().z), Ogre::Node::TS_WORLD, Ogre::Vector3::NEGATIVE_UNIT_Z);
+
+			
+
+			}
+		}
+
+	}
+
+
+
  
-    if (currMouse && ! mMouseDown)
-    {
-        Ogre::Light* light = mSceneMgr->getLight("pointLight");
-        light->setVisible(! light->isVisible());
-    }
- 
-    mMouseDown = currMouse;
- 
-    mToggle -= evt.timeSinceLastFrame;
- 
-    if ((mToggle < 0.0f ) && mKeyboard->isKeyDown(OIS::KC_1))
-    {
-        mToggle  = 0.5;
-        Ogre::Light* light = mSceneMgr->getLight("pointLight");
-        light->setVisible(! light->isVisible());
-    }
- 
-    Ogre::Vector3 transVector = Ogre::Vector3::ZERO;
- 
-    if (mKeyboard->isKeyDown(OIS::KC_I)) // Forward
-    {
-        transVector.z -= mMove;
-    }
-    if (mKeyboard->isKeyDown(OIS::KC_K)) // Backward
-    {
-        transVector.z += mMove;
-    }
-    if (mKeyboard->isKeyDown(OIS::KC_J)) // Left - yaw or strafe
-    {
-        if(mKeyboard->isKeyDown( OIS::KC_LSHIFT ))
-        {
-            // Yaw left
-            mSceneMgr->getSceneNode("NinjaNode")->yaw(Ogre::Degree(mRotate * 5));
-        } else {
-            transVector.x -= mMove; // Strafe left
-        }
-    }
-    if (mKeyboard->isKeyDown(OIS::KC_L)) // Right - yaw or strafe
-    {
-        if(mKeyboard->isKeyDown( OIS::KC_LSHIFT ))
-        {
-            // Yaw right
-            mSceneMgr->getSceneNode("NinjaNode")->yaw(Ogre::Degree(-mRotate * 5));
-        } else {
-            transVector.x += mMove; // Strafe right
-        }
-    }
-    if (mKeyboard->isKeyDown(OIS::KC_U)) // Up
-    {
-        transVector.y += mMove;
-    }
-    if (mKeyboard->isKeyDown(OIS::KC_O)) // Down
-    {
-        transVector.y -= mMove;
-    }
- 
-    mSceneMgr->getSceneNode("NinjaNode")->translate(transVector * evt.timeSinceLastFrame, Ogre::Node::TS_LOCAL);
- 
+   
+
     return true;
 }
 //-------------------------------------------------------------------------------------

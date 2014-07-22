@@ -90,7 +90,8 @@ bool DigitalForensicsVisualisation::processUnbufferedInput(const Ogre::FrameEven
 
 
 	//leap
-	const Frame frame = leapController.frame();
+	static Frame frame;
+	frame = leapController.frame();
 	
 
 	

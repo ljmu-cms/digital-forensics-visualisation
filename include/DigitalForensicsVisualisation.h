@@ -16,6 +16,7 @@ class DigitalForensicsVisualisation : public BaseApplication
 
 private:
 
+	Ogre::SceneNode* bonesArr[20]; //array that stores the addresses of the bones
 	SampleListener leapSampleListener;
 	Controller leapController;
 	bool processUnbufferedInput(const Ogre::FrameEvent& evt);

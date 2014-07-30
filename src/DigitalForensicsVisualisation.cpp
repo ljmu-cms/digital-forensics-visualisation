@@ -4,19 +4,24 @@
 using std::cout;
 using std::endl;
 
-char* nodeName;
+
+
+
+
 
 //-------------------------------------------------------------------------------------
 DigitalForensicsVisualisation::DigitalForensicsVisualisation(void)
 {
 	previousFramePitch = previousFrameYaw = previousFrameRoll = 0;
 	handOrientationFlag = false;
-	nodeName = (char*) malloc(3);
+	
+
+	
 }
 //-------------------------------------------------------------------------------------
 DigitalForensicsVisualisation::~DigitalForensicsVisualisation(void)
 {
-	free(nodeName);
+	
 }
 
 //-------------------------------------------------------------------------------------
@@ -38,7 +43,7 @@ void DigitalForensicsVisualisation::createScene(void)
 	handNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("HandNode");
 	handNode->setPosition (0, -300, -500);
 	// palm
-	Ogre::Entity* palm = mSceneMgr->createEntity("palm","sphere.mesh");
+	Ogre::Entity* palm = mSceneMgr->createEntity("palm","cube.mesh");
 	palmNode = handNode->createChildSceneNode("PalmNode");
 	
 	palmNode->attachObject(palm);
@@ -55,12 +60,12 @@ void DigitalForensicsVisualisation::createScene(void)
 	for (int i = 0; i < 20; ++i)
 	{
 		sprintf(str, "%d", i);
-		bone = mSceneMgr->createEntity(str,"sphere.mesh");
-		Ogre::SceneNode* tempNode = fingersNode->createChildSceneNode(str);
-		tempNode->attachObject(bone);
-		tempNode->scale(.1,.1,.1);
+		bone = mSceneMgr->createEntity(str,"cube.mesh");
+		bonesArr[i] = fingersNode->createChildSceneNode(str);
+		bonesArr[i]->attachObject(bone);
+		bonesArr[i]->scale(.1,.1,.1);
 
-		//fingers.InsertFirst(*bone);
+	
 	
 	}
 
@@ -71,6 +76,31 @@ void DigitalForensicsVisualisation::createScene(void)
     pointLight->setPosition(Ogre::Vector3(250, 150, 250));
     pointLight->setDiffuseColour(Ogre::ColourValue::White);
     pointLight->setSpecularColour(Ogre::ColourValue::White);
+
+
+
+	Ogre::ManualObject* Circle=mSceneMgr->createManualObject("Circle");
+	Ogre::SceneNode* CircleNode=mSceneMgr->getRootSceneNode()->createChildSceneNode("CircleNode");
+
+	Circle->begin("BaseWhite", Ogre::RenderOperation::OT_TRIANGLE_LIST);
+	const float accuracy = 15;
+	const float radius = 55;
+	const float thickness = 20;
+	unsigned int index = 0;
+ 
+	for (float theta = 0; theta <= 2 * Ogre::Math::PI; theta += Ogre::Math::PI / accuracy) 
+	{
+		Circle->position(radius * cos(theta), 0, radius * sin(theta));
+		Circle->position(radius * cos(theta - Ogre::Math::PI / accuracy),0, radius * sin(theta - Ogre::Math::PI / accuracy));
+		Circle->position((radius - thickness) * cos(theta - Ogre::Math::PI / accuracy), 0, (radius - thickness) * sin(theta - Ogre::Math::PI / accuracy));
+		//Circle->position((radius - thickness) * cos(theta), 0, (radius - thickness) * sin(theta));
+				
+		Circle->quad(index, index + 1, index + 2, index + 3);
+		index += 4;
+	}
+	Circle->end();
+	CircleNode->attachObject(Circle);
+
 }
 
 //-------------------------------------------------------------------------------------
@@ -96,19 +126,20 @@ bool DigitalForensicsVisualisation::processUnbufferedInput(const Ogre::FrameEven
 
 	
 	Leap::Hand rightMost = frame.hands().rightmost();
-    palmNode->setPosition(rightMost.palmPosition().x, rightMost.palmPosition().y, rightMost.palmPosition().z); // between 100 and 250
+
+		
+		
+	previousFramePitch = rightMost.direction().pitch() * RAD_TO_DEG;
+	previousFrameYaw = rightMost.direction().yaw() * RAD_TO_DEG;
+	previousFrameRoll = rightMost.palmNormal().roll() * RAD_TO_DEG;
 
 	
 	
 	
 	if (!frame.hands().isEmpty() && !handOrientationFlag) 
 	{
-		palmNode->resetOrientation();
 		
-		previousFramePitch = rightMost.direction().pitch() * RAD_TO_DEG;
-		previousFrameYaw = rightMost.direction().yaw() * RAD_TO_DEG;
-		previousFrameRoll = rightMost.palmNormal().roll() * RAD_TO_DEG;
-
+		palmNode->resetOrientation();
 		handOrientationFlag = true;	
 	}
 	else if (handOrientationFlag && frame.hands().isEmpty() )
@@ -119,6 +150,11 @@ bool DigitalForensicsVisualisation::processUnbufferedInput(const Ogre::FrameEven
 
 	if (!frame.hands().isEmpty())
 	{
+		
+
+		Leap::Hand rightMost = frame.hands().rightmost();
+		palmNode->setPosition(rightMost.palmPosition().x, rightMost.palmPosition().y, rightMost.palmPosition().z); // between 100 and 250
+
 		float pitchValue = rightMost.direction().pitch() * RAD_TO_DEG;
 		palmNode->pitch((Ogre::Radian) (pitchValue - previousFramePitch) );
 
@@ -139,42 +175,30 @@ bool DigitalForensicsVisualisation::processUnbufferedInput(const Ogre::FrameEven
 
 
 		// Get fingers
-		const FingerList fingers = rightMost.fingers();
+		static FingerList fingers; 
+		fingers = rightMost.fingers();
 		int i = 0;
 		int index = 0; //between 0 and 19 (finger bones)
-		for (FingerList::const_iterator fl = fingers.begin(); fl != fingers.end(); ++fl, ++i) {
+		for (FingerList::const_iterator fl = fingers.begin(); fl != fingers.end(); ++fl) 
+		{
 			
-			const Finger finger = *fl;
-			/*std::cout << std::string(4, ' ') <<  fingerNames[finger.type()]
-					<< " finger, id: " << finger.id()
-					<< ", length: " << finger.length()
-					<< "mm, width: " << finger.width() << std::endl;*/
+			static Finger finger;
+			finger = *fl;
 
-		/*			char* dummy = (char*) malloc(128);
-					sprintf (dummy, "finger id: %d, length: %f, width: %f\n", finger.id(), finger.length(), finger.width()); 
-					OutputDebugString (dummy);
-					free(dummy);*/
 
-			// Get finger bones
-			for (int b = 0; b < 4; ++b, ++index) {
-			Bone::Type boneType = static_cast<Bone::Type>(b);
-			Bone bone = finger.bone(boneType);
-			/*std::cout << std::string(6, ' ') <<  boneNames[boneType]
-						<< " bone, start: " << bone.prevJoint()
-						<< ", end: " << bone.nextJoint()
-						<< ", direction: " << bone.direction() << std::endl;*/
-						
-	/*		char* dummy = (char*) malloc(128);
-			sprintf (dummy, "#%d.%d  bone x: %f, bone y: %f, bone z: %f\n", i , b, bone.center().x, bone.center().y, bone.center().z); 
+		  /*char* dummy = (char*) malloc(128);
+			sprintf (dummy, "finger id: %d, length: %f, width: %f\n", finger.id(), finger.length(), finger.width()); 
 			OutputDebugString (dummy);
 			free(dummy);*/
 
-			
-			sprintf(nodeName,"%d",index);
-			fingersNode->getChild(nodeName)->setPosition(bone.center().x, bone.center().y, bone.center().z);
-			//fingersNode->getChild(nodeName)->_getDerivedOrientation().x
-			
-			//fingersNode->lookAt(Ogre::Vector3(bone.direction().x, bone.direction().y, bone.direction().z), Ogre::Node::TS_WORLD, Ogre::Vector3::NEGATIVE_UNIT_Z);
+			// Get finger bones
+			for (int b = 0; b < 4; ++b, ++index) 
+			{
+				static Bone::Type boneType;
+				boneType = static_cast<Bone::Type>(b);
+				static Bone bone;
+				bone = finger.bone(boneType);
+				bonesArr[i++]->setPosition(bone.center().x, bone.center().y, bone.center().z);
 
 			
 
@@ -195,7 +219,7 @@ bool DigitalForensicsVisualisation::frameRenderingQueued(const Ogre::FrameEvent&
 {
     bool ret = BaseApplication::frameRenderingQueued(evt);
  
-    if(!processUnbufferedInput(evt)) return false;
+    if (!processUnbufferedInput(evt)) return false;
  
     return ret;
 }

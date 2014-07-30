@@ -177,8 +177,8 @@ bool DigitalForensicsVisualisation::processUnbufferedInput(const Ogre::FrameEven
 		// Get fingers
 		static FingerList fingers; 
 		fingers = rightMost.fingers();
-		int i = 0;
-		int index = 0; //between 0 and 19 (finger bones)
+		int i = 0; //between 0 and 19 (finger bones)
+		
 		for (FingerList::const_iterator fl = fingers.begin(); fl != fingers.end(); ++fl) 
 		{
 			
@@ -192,7 +192,7 @@ bool DigitalForensicsVisualisation::processUnbufferedInput(const Ogre::FrameEven
 			free(dummy);*/
 
 			// Get finger bones
-			for (int b = 0; b < 4; ++b, ++index) 
+			for (int b = 0; b < 4; ++b) 
 			{
 				static Bone::Type boneType;
 				boneType = static_cast<Bone::Type>(b);

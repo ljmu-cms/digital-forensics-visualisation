@@ -6,6 +6,10 @@ using std::endl;
 
 
 
+Ogre::Vector3 toVector (Vector leapVector)
+{
+	return Ogre::Vector3(leapVector.x, leapVector.y, leapVector.z);
+}
 
 
 
@@ -113,6 +117,8 @@ void DigitalForensicsVisualisation::createViewports(void)
     mCamera->setAspectRatio(Ogre::Real(vp->getActualWidth()) / Ogre::Real(vp->getActualHeight()));  
 }
  
+
+
 //-------------------------------------------------------------------------------------
 
 bool DigitalForensicsVisualisation::processUnbufferedInput(const Ogre::FrameEvent& evt)
@@ -154,6 +160,8 @@ bool DigitalForensicsVisualisation::processUnbufferedInput(const Ogre::FrameEven
 
 		Leap::Hand rightMost = frame.hands().rightmost();
 		palmNode->setPosition(rightMost.palmPosition().x, rightMost.palmPosition().y, rightMost.palmPosition().z); // between 100 and 250
+		
+		
 
 		float pitchValue = rightMost.direction().pitch() * RAD_TO_DEG;
 		palmNode->pitch((Ogre::Radian) (pitchValue - previousFramePitch) );
@@ -184,8 +192,8 @@ bool DigitalForensicsVisualisation::processUnbufferedInput(const Ogre::FrameEven
 			
 			static Finger finger;
 			finger = *fl;
-
-
+			
+			
 		  /*char* dummy = (char*) malloc(128);
 			sprintf (dummy, "finger id: %d, length: %f, width: %f\n", finger.id(), finger.length(), finger.width()); 
 			OutputDebugString (dummy);
@@ -200,11 +208,26 @@ bool DigitalForensicsVisualisation::processUnbufferedInput(const Ogre::FrameEven
 				bone = finger.bone(boneType);
 				bonesArr[i++]->setPosition(bone.center().x, bone.center().y, bone.center().z);
 
-			
-
 			}
 		}
 
+		// to detect fist
+		/*char* dummy = (char*) malloc(8);
+		sprintf (dummy, "%f\n", rightMost.grabStrength()); 
+		OutputDebugString(dummy);*/
+
+
+		// to detect open and closed hand
+		Ogre::Vector3 indexTip = toVector(rightMost.fingers()[1].tipPosition());
+		Ogre::Vector3 pinkyTip = toVector(rightMost.fingers()[3].tipPosition());
+
+	
+		float angle = std::abs(indexTip.x - pinkyTip.x);
+		angle /= rightMost.fingers()[1].length(); // to normalise 
+		
+		char* dummy = (char*) malloc(8);
+		sprintf (dummy, "%f\n", angle); 
+		OutputDebugString(dummy);
 	}
 
 

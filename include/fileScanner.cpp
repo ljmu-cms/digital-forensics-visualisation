@@ -46,6 +46,9 @@ void scan (const char* directory)
 		{
 			scan (fileName);
 		}
+		
+	
+	 free (fileName);
         
     }
 }

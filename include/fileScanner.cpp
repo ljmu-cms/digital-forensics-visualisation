@@ -10,6 +10,8 @@ using std::cout;
 using std::cin;
 using std::endl;
 
+unsigned long long count;
+
 void scan (const char* directory)
 {
 	DIR* pdir = opendir (directory); 
@@ -25,7 +27,7 @@ void scan (const char* directory)
 */
     while (pent = readdir (pdir)) 
     {
-
+		
 		if (pent->d_name[0] == '.')
 			continue;
 		
@@ -40,7 +42,8 @@ void scan (const char* directory)
         
 		if (st.st_mode & is_regular)
 		{
-			cout << fileName << endl; //get the file
+			cout << count << fileName << endl; //get the file
+			++count;
 		}
 		else
 		{
@@ -58,9 +61,10 @@ void scan (const char* directory)
 
 int main()
 {
+	count = 0;
 	const char* dir = "C:/";
 	scan(dir);
-	cout << "\n\n\n\n\n#####################END\n\n\n\n\n";
+	cout << "\n\n\n\n\n#####################count is:" << count << "\n\n\n";
 	return 0;
 }
 

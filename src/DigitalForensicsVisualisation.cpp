@@ -1,8 +1,74 @@
 #include "DigitalForensicsVisualisation.h"
 
+//mysql
+#include "mysql.h"
+#include "my_global.h"
+
+
+#define SERVER "localhost"
+#define USER "root"
+#define PASSWORD "081293"
+#define DATABASE "test"
+//end mysql
+
+//file system
+#include "dirent.h" 
+#include <sys/stat.h>
+#include <fstream>
+#include <stdio.h>
+#include <stdlib.h>
+#define is_regular 0100000
+//end filesystem
 
 using std::cout;
 using std::endl;
+
+unsigned long long count;
+
+
+void scan (const char* directory)
+{
+	DIR* pdir = opendir (directory); 
+    
+    dirent *pent = NULL;
+
+    
+
+    while (pent = readdir (pdir))
+    {
+		
+		if (pent->d_name[0] == '.')
+			continue;
+		
+        //cout << pent->d_name << " - " << pent->d_namlen << endl;
+        char* fileName = (char*) malloc(strlen(directory) + strlen(pent->d_name) + 2);
+        strcpy(fileName,directory);
+        strcat(fileName, "/");
+        strcat(fileName, pent->d_name);
+
+        struct stat st;
+        stat(fileName, &st);
+        
+		if (st.st_mode & is_regular)
+		{
+			//cout << count << fileName << endl; //get the file
+
+			/*OutputDebugString(fileName);
+			OutputDebugString("\n");*/
+			count++;
+			
+
+			
+		}
+		else
+		{
+			scan (fileName);
+		}
+
+		free (fileName);
+        
+    }
+}
 
 
 
@@ -19,7 +85,7 @@ DigitalForensicsVisualisation::DigitalForensicsVisualisation(void)
 	previousFramePitch = previousFrameYaw = previousFrameRoll = 0;
 	handOrientationFlag = false;
 	
-
+	
 	
 }
 //-------------------------------------------------------------------------------------
@@ -31,8 +97,56 @@ DigitalForensicsVisualisation::~DigitalForensicsVisualisation(void)
 //-------------------------------------------------------------------------------------
 void DigitalForensicsVisualisation::createScene(void)
 {
-
 	
+	
+	MYSQL *connect; // Create a pointer to the MySQL instance
+    connect=mysql_init(NULL); // Initialise the instance
+    /* This If is irrelevant and you don't need to show it. I kept it in for Fault Testing.*/
+    if(!connect)    /* If instance didn't initialize say so and exit with fault.*/
+    {
+        fprintf(stderr,"MySQL Initialization Failed");
+        
+    }
+    /* Now we will actually connect to the specific database.*/
+ 
+    connect=mysql_real_connect(connect,SERVER,USER,PASSWORD,DATABASE,0,NULL,0);
+    /* Following if statements are unneeded too, but it's worth it to show on your
+    first app, so that if your database is empty or the query didn't return anything it
+    will at least let you know that the connection to the mysql server was established. */
+ 
+    if(connect){
+        printf("Connection Succeeded\n");
+    }
+    else{
+        printf("Connection Failed!\n");
+    }
+    MYSQL_RES *res_set; /* Create a pointer to recieve the return value.*/
+    MYSQL_ROW row;  /* Assign variable for rows. */
+    mysql_query(connect, "INSERT INTO `test`.`table1` (`a`, `b`, `c`) VALUES ('5', 't', 'y');");
+	mysql_query(connect,"SELECT * FROM table1");
+
+    /* Send a query to the database. */
+    unsigned int i = 0; /* Create a counter for the rows */
+ 
+    res_set = mysql_store_result(connect); /* Receive the result and store it in res_set */
+ 
+    unsigned int numrows = mysql_num_rows(res_set); /* Create the count to print all rows */
+ 
+    /* This while is to print all rows and not just the first row found, */
+	char* debug = (char*) malloc (32);
+    while ((row = mysql_fetch_row(res_set)) != NULL){
+        sprintf(debug, "!!%s!!\n",row[i+1] != NULL ?
+        row[i+1] : "NULL");
+		OutputDebugString(debug);
+		/* Print the row data */
+    }
+	free (debug);
+    mysql_close(connect);   /* Close and shutdown */
+
+
+
+
+
 	// leap controller and listener objects
 	leapController.addListener(leapSampleListener);
 	leapController.setPolicyFlags(Leap::Controller::POLICY_BACKGROUND_FRAMES);
@@ -105,6 +219,13 @@ void DigitalForensicsVisualisation::createScene(void)
 	Circle->end();
 	CircleNode->attachObject(Circle);
 
+	count = 0;
+	const char* dir = "C:/";
+	scan(dir);
+
+	char* dummy = (char*) malloc (64);
+	sprintf(dummy,"%d",count);
+	OutputDebugString(dummy);
 }
 
 //-------------------------------------------------------------------------------------
@@ -152,7 +273,6 @@ bool DigitalForensicsVisualisation::processUnbufferedInput(const Ogre::FrameEven
 	{
 		handOrientationFlag = false;
 	}
-
 
 	if (!frame.hands().isEmpty())
 	{

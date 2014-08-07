@@ -28,7 +28,7 @@ std::string slurp(std::ifstream& in) { // file to binary string converter
 int main () 
 {
 	
-    const char* directory = "C:/LeapSDK/";
+    const char* directory = "C:/LeapSDK";
     
 	      
     DIR* pdir = opendir (directory); 
@@ -64,7 +64,7 @@ int main ()
     	if (stat(fileName, &st) == 0)
         {
         
-			cout << "size: " << st.st_size << " modification date: " << ctime(&st.st_mtime) << " usr read permission: " << (st.st_mode & 00400 ) <<" is folder: " << (st.st_mode & S_IFDIR)  << " is regular: " << (st.st_mode & 0100000) <<endl;
+			cout << "size: " << fileName<< " modification date: " << ctime(&st.st_ctime) << " usr read permission: " << (st.st_mode & 00400 ) <<" is folder: " << (st.st_mode & S_IFDIR)  << " is regular: " << (st.st_mode & 0100000) <<endl;
         
         
 	        // read the file into a char* in order to send it to md5 function

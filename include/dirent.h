@@ -111,7 +111,7 @@
 # define S_IRGRP  0                            /* read, group */
 # define S_IWGRP  0                            /* write, group */
 # define S_IXGRP  0                            /* execute, group */
-# define S_IROTH  0                            /* read, others */
+//# define S_IROTH2  0                            /* read, others */
 # define S_IWOTH  0                            /* write, others */
 # define S_IXOTH  0                            /* execute, others */
 #endif

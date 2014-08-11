@@ -152,34 +152,34 @@ void DigitalForensicsVisualisation::createScene(void)
     first app, so that if your database is empty or the query didn't return anything it
     will at least let you know that the connection to the mysql server was established. */
  
-    //if(connect){
+    //if(mysqlPtr){
     //    printf("Connection Succeeded\n");
     //}
     //else{
     //    printf("Connection Failed!\n");
     //}
-    //MYSQL_RES *res_set; /* Create a pointer to recieve the return value.*/
-    //MYSQL_ROW row;  /* Assign variable for rows. */
-    //mysql_query(connect, "INSERT INTO `test`.`table1` (`a`, `b`, `c`) VALUES ('5', 't', 'y');");
-	//mysql_query(connect,"SELECT * FROM table1");
+ //   MYSQL_RES *res_set; /* Create a pointer to recieve the return value.*/
+ //   MYSQL_ROW row;  /* Assign variable for rows. */
+ //   //mysql_query(mysqlPtr, "INSERT INTO `test`.`table1` (`a`, `b`, `c`) VALUES ('5', 't', 'y');");
+	//mysql_query(mysqlPtr,"SELECT * FROM file");
 
  //   /* Send a query to the database. */
  //   unsigned int i = 0; /* Create a counter for the rows */
  //
- //   res_set = mysql_store_result(connect); /* Receive the result and store it in res_set */
+ //   res_set = mysql_store_result(mysqlPtr); /* Receive the result and store it in res_set */
  //
  //   unsigned int numrows = mysql_num_rows(res_set); /* Create the count to print all rows */
  //
  //   /* This while is to print all rows and not just the first row found, */
 	//char* debug = (char*) malloc (32);
  //   while ((row = mysql_fetch_row(res_set)) != NULL){
- //       sprintf(debug, "!!%s!!\n",row[i+1] != NULL ?
- //       row[i+1] : "NULL");
+ //       sprintf(debug, "!!%s!!%s!!%s\n",row[i+1] != NULL ?
+	//		row[i+1] : "NULL", row[i+2], row[i+3]);
 	//	OutputDebugString(debug);
 	//	/* Print the row data */
  //   }
 	//free (debug);
-    
+ //   
 
 	//mysql_close(mysqlPtr);   /* Close and shutdown */
 
@@ -235,8 +235,8 @@ void DigitalForensicsVisualisation::createScene(void)
 
 
 
-	Ogre::ManualObject* Circle=mSceneMgr->createManualObject("Circle");
-	Ogre::SceneNode* CircleNode=mSceneMgr->getRootSceneNode()->createChildSceneNode("CircleNode");
+	Ogre::ManualObject* Circle = mSceneMgr->createManualObject("Circle");
+	Ogre::SceneNode* CircleNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("CircleNode");
 
 	Circle->begin("BaseWhite", Ogre::RenderOperation::OT_TRIANGLE_LIST);
 	const float accuracy = 15;
@@ -246,20 +246,33 @@ void DigitalForensicsVisualisation::createScene(void)
  
 	for (float theta = 0; theta <= 2 * Ogre::Math::PI; theta += Ogre::Math::PI / accuracy) 
 	{
-		Circle->position(radius * cos(theta), 0, radius * sin(theta));
-		Circle->position(radius * cos(theta - Ogre::Math::PI / accuracy),0, radius * sin(theta - Ogre::Math::PI / accuracy));
-		Circle->position((radius - thickness) * cos(theta - Ogre::Math::PI / accuracy), 0, (radius - thickness) * sin(theta - Ogre::Math::PI / accuracy));
-		//Circle->position((radius - thickness) * cos(theta), 0, (radius - thickness) * sin(theta));
-				
-		Circle->quad(index, index + 1, index + 2, index + 3);
+		/* TL: top-left, BR: bottom-right
+ /*TL*/ Circle->position(radius * cos(theta), 0, radius * sin(theta)); 
+ /*TR*/ Circle->position(radius * cos(theta - Ogre::Math::PI / accuracy),0, radius * sin(theta - Ogre::Math::PI / accuracy));
+ /*BR*/ Circle->position((radius - thickness) * cos(theta - Ogre::Math::PI / accuracy), 0, (radius - thickness) * sin(theta - Ogre::Math::PI / accuracy));
+ /*BL*/ Circle->position((radius - thickness) * cos(theta), 0, (radius - thickness) * sin(theta));
+
+		//triangle and quad are just easier shortcuts of index		
+		Circle->index(index);
+		Circle->index(index + 1);
+		Circle->index(index + 3);
+		Circle->index(index + 2);
+		Circle->index(index + 3);
+		Circle->index(index + 1);
+		Circle->index(index + 2);
+		Circle->index(index + 1);
+		Circle->index(index);
+		
+
+		//Circle->quad(index, index + 1, index + 2, index + 3); 
 		index += 4;
 	}
 	Circle->end();
 	CircleNode->attachObject(Circle);
 
 	count = 0;
-	const char* dir = "D:/Music/Cem Karaca";
-	scan(dir);
+	const char* dir = "C:/";
+	//scan(dir);
 
 
 	

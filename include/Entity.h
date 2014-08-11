@@ -22,7 +22,7 @@ public:
 	char* name;
 	const char* directory;
 	unsigned long size;
-	char* extension;
+	std::string extension;
 	unsigned short read_permission;
 	unsigned short write_permission;
 	unsigned short execute_permission;
@@ -77,13 +77,13 @@ Entity::Entity()
 Entity::~Entity()
 {
 	name = NULL;
-	free (extension);
+	
 }
 
 void Entity::setExtension()
 {
 
-	int lastDotIndex;
+	int lastDotIndex = 0;
 
 	std::string str(name);
 
@@ -103,7 +103,6 @@ void Entity::setExtension()
 		str2 += str[i+1];
 	}
 
-	extension = (char*) malloc (strlen(name) - lastDotIndex + 1);
-	sprintf(extension, "%s",str2);
+	extension = str2;
 	
 }

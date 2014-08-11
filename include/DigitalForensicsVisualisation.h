@@ -17,7 +17,7 @@ class DigitalForensicsVisualisation : public BaseApplication
 {
 
 private:
-	
+
 	Ogre::SceneNode* bonesArr[20]; //array that stores the addresses of the bones
 	SampleListener leapSampleListener;
 	Controller leapController;
@@ -31,6 +31,8 @@ private:
 	bool handOrientationFlag;
 
 public:
+	
+	Entity e;
     DigitalForensicsVisualisation(void);
     virtual ~DigitalForensicsVisualisation(void);
 	//OgreBites::Label* mInfoLabel;

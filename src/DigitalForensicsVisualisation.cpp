@@ -1,4 +1,5 @@
 #include "DigitalForensicsVisualisation.h"
+#include <sstream>
 
 //mysql
 #include "mysql.h"
@@ -29,6 +30,10 @@ char* query;
 unsigned long long count;
 
 
+MYSQL *mysqlPtr; // Create a pointer to the MySQL instance
+
+DigitalForensicsVisualisation app;  // creating application object here!!
+
 void scan (const char* directory)
 {
 	DIR* pdir = opendir (directory); 
@@ -56,35 +61,41 @@ void scan (const char* directory)
 		{
 			//cout << count << fileName << endl; //get the file
 
-			/*OutputDebugString(fileName);
-			OutputDebugString("\n");*/
+			//OutputDebugString(fileName);
+			//OutputDebugString("\n");
 
-			Entity e;
-			e.name = pent->d_name;
-			e.directory = directory;
-			e.full_name = fileName;
-			e.size = st.st_size;
+			
+			app.e.name = pent->d_name;
+			app.e.directory = directory;
+			app.e.size = st.st_size;
+			app.e.full_name = fileName;
 
-			e.read_permission = (st.st_mode & 00400) ? 1 : 0;
-			e.write_permission = (st.st_mode & 00200) ? 1 : 0;
-			e.execute_permission = (st.st_mode & 00100) ? 1 : 0;
-
-			e.creation_time = ctime(&st.st_ctime);
-			e.modification_time = ctime(&st.st_mtime);
-			e.execution_time = ctime(&st.st_atime);
-
-
-
-			e.setExtension();
+			app.e.read_permission = (st.st_mode & 00400) ? 1 : 0;
+			app.e.write_permission = (st.st_mode & 00200) ? 1 : 0;
+			app.e.execute_permission = (st.st_mode & 00100) ? 1 : 0;
+			
+			app.e.creation_time = ctime(&st.st_ctime);
+			app.e.modification_time = ctime(&st.st_mtime);
+			app.e.execution_time = ctime(&st.st_atime);
+			
+			app.e.setExtension();
 
 			count++;
-			MYSQL *connect; // Create a pointer to the MySQL instance
-			connect = mysql_init(NULL); // Initialise the instance
-			connect=mysql_real_connect(connect,SERVER,USER,PASSWORD,DATABASE,0,NULL,0);
-			
-			*query = NULL;
+			//mysqlPtr = mysql_init(NULL); // Initialise the instance
+			//mysqlPtr=mysql_real_connect(mysqlPtr,SERVER,USER,PASSWORD,DATABASE,0,NULL,0);
+			////
+			//*query = NULL;
 
-			mysql_query(connect, "INSERT INTO `test`.`file` (`full_name`, `name`, `directory`, `size`, `extension`, `read_permission`, `write_permission`,`execute_permission`, `c_time`,`a_time`,`m_time`) VALUES ('q', 'w', 'e', '5', 'tar', '1', '1', '1', 'string', 'string', 'string');");
+			std::stringstream ss;
+			ss << "INSERT INTO `test`.`file` ( `name`, `directory`, `size`, `extension`, `read_permission`, `write_permission`,`execute_permission`, `c_time`,`a_time`,`m_time`) VALUES ("<< "'"
+				<< app.e.name << "', " << "'"
+				<< app.e.directory << "', " << "'" << app.e.size << "', " << "'" << app.e.extension << "', " << "'"
+				<< app.e.read_permission << "', " << "'" << app.e.write_permission << "', " << "'" << app.e.execute_permission << "', " << "'" 
+				<< app.e.creation_time << "', " << "'" << app.e.execution_time << "', " << "'" << app.e.modification_time << "'); ";
+
+			std::string insertQuery = ss.str();
+
+			mysql_query(mysqlPtr, insertQuery.c_str());
 			
 		}
 		else
@@ -126,17 +137,17 @@ void DigitalForensicsVisualisation::createScene(void)
 {
 	query = (char*) malloc (4096);
 	
-	MYSQL *connect; // Create a pointer to the MySQL instance
-    connect = mysql_init(NULL); // Initialise the instance
+	//MYSQL *connect; // Create a pointer to the MySQL instance
+    mysqlPtr = mysql_init(NULL); // Initialise the instance
     /* This If is irrelevant and you don't need to show it. I kept it in for Fault Testing.*/
-    if(!connect)    /* If instance didn't initialize say so and exit with fault.*/
+    if(!mysqlPtr)    /* If instance didn't initialize say so and exit with fault.*/
     {
         fprintf(stderr,"MySQL Initialization Failed");
         
     }
     /* Now we will actually connect to the specific database.*/
  
-    connect=mysql_real_connect(connect,SERVER,USER,PASSWORD,DATABASE,0,NULL,0);
+    mysqlPtr=mysql_real_connect(mysqlPtr,SERVER,USER,PASSWORD,DATABASE,0,NULL,0);
     /* Following if statements are unneeded too, but it's worth it to show on your
     first app, so that if your database is empty or the query didn't return anything it
     will at least let you know that the connection to the mysql server was established. */
@@ -170,7 +181,7 @@ void DigitalForensicsVisualisation::createScene(void)
 	//free (debug);
     
 
-	mysql_close(connect);   /* Close and shutdown */
+	//mysql_close(mysqlPtr);   /* Close and shutdown */
 
 
 
@@ -247,7 +258,7 @@ void DigitalForensicsVisualisation::createScene(void)
 	CircleNode->attachObject(Circle);
 
 	count = 0;
-	const char* dir = "C:/leapsdk";
+	const char* dir = "D:/Music/Cem Karaca";
 	scan(dir);
 
 
@@ -258,6 +269,7 @@ void DigitalForensicsVisualisation::createScene(void)
 	sprintf(dummy,"%d",count);
 	OutputDebugString(dummy);
 	free (query);
+	mysql_close(mysqlPtr); 
 }
 
 //-------------------------------------------------------------------------------------
@@ -417,7 +429,7 @@ extern "C" {
 #endif
     {
         // Create application object
-        DigitalForensicsVisualisation app;
+        //#################### application object is used to be created here!!!!!!!!!!!!!!!!!
 
         try {
             app.go();

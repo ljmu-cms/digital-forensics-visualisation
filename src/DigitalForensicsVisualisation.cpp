@@ -239,36 +239,45 @@ void DigitalForensicsVisualisation::createScene(void)
 	Ogre::SceneNode* CircleNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("CircleNode");
 
 	Circle->begin("BaseWhite", Ogre::RenderOperation::OT_TRIANGLE_LIST);
-	const float accuracy = 15;
-	const float radius = 55;
-	const float thickness = 20;
+	const float accuracy = 10;
+	const float radius = 100;
+	const float thickness = 75;
 	unsigned int index = 0;
  
 	for (float theta = 0; theta <= 2 * Ogre::Math::PI; theta += Ogre::Math::PI / accuracy) 
 	{
 		/* TL: top-left, BR: bottom-right
  /*TL*/ Circle->position(radius * cos(theta), 0, radius * sin(theta)); 
+		Circle->normal(radius * cos(theta), 90, radius * sin(theta)); 
  /*TR*/ Circle->position(radius * cos(theta - Ogre::Math::PI / accuracy),0, radius * sin(theta - Ogre::Math::PI / accuracy));
+		Circle->normal(radius * cos(theta - Ogre::Math::PI / accuracy),90, radius * sin(theta - Ogre::Math::PI / accuracy));
  /*BR*/ Circle->position((radius - thickness) * cos(theta - Ogre::Math::PI / accuracy), 0, (radius - thickness) * sin(theta - Ogre::Math::PI / accuracy));
+		Circle->normal((radius - thickness) * cos(theta - Ogre::Math::PI / accuracy), 90, (radius - thickness) * sin(theta - Ogre::Math::PI / accuracy));
  /*BL*/ Circle->position((radius - thickness) * cos(theta), 0, (radius - thickness) * sin(theta));
+		Circle->normal((radius - thickness) * cos(theta), 90, (radius - thickness) * sin(theta));
+
+
+		//Circle->triangle(index, index + 1, index + 3);
+		//Circle->triangle(index + 1, index + 2, index + 3);
+
+		Circle->index(index);
+		Circle->index(index + 1);
+		Circle->index(index + 3);
+		Circle->index(index + 1);
+		Circle->index(index + 2);
+		Circle->index(index + 3);
+
 
 		//triangle and quad are just easier shortcuts of index		
-		Circle->index(index);
-		Circle->index(index + 1);
-		Circle->index(index + 3);
-		Circle->index(index + 2);
-		Circle->index(index + 3);
-		Circle->index(index + 1);
-		Circle->index(index + 2);
-		Circle->index(index + 1);
-		Circle->index(index);
-		
 
 		//Circle->quad(index, index + 1, index + 2, index + 3); 
 		index += 4;
+		break;
 	}
 	Circle->end();
 	CircleNode->attachObject(Circle);
+	CircleNode->setPosition (0,-300,-500);
+	
 
 	count = 0;
 	const char* dir = "C:/";

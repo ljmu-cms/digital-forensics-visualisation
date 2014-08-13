@@ -239,14 +239,15 @@ void DigitalForensicsVisualisation::createScene(void)
 	Ogre::SceneNode* CircleNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("CircleNode");
 
 	Circle->begin("BaseWhite", Ogre::RenderOperation::OT_TRIANGLE_LIST);
-	const float accuracy = 10;
-	const float radius = 100;
-	const float thickness = 75;
+	const float accuracy = 45;
+	const float radius = 145;
+	const float thickness = 100;
 	unsigned int index = 0;
- 
-	for (float theta = 0; theta <= 2 * Ogre::Math::PI; theta += Ogre::Math::PI / accuracy) 
+	
+	
+	for (float theta = 0; theta <= Ogre::Math::PI; theta += Ogre::Math::PI / (accuracy)) 
 	{
-		/* TL: top-left, BR: bottom-right
+		// TL: top-left, BR: bottom-right
  /*TL*/ Circle->position(radius * cos(theta), 0, radius * sin(theta)); 
 		Circle->normal(radius * cos(theta), 90, radius * sin(theta)); 
  /*TR*/ Circle->position(radius * cos(theta - Ogre::Math::PI / accuracy),0, radius * sin(theta - Ogre::Math::PI / accuracy));
@@ -256,27 +257,66 @@ void DigitalForensicsVisualisation::createScene(void)
  /*BL*/ Circle->position((radius - thickness) * cos(theta), 0, (radius - thickness) * sin(theta));
 		Circle->normal((radius - thickness) * cos(theta), 90, (radius - thickness) * sin(theta));
 
-
+		
 		//Circle->triangle(index, index + 1, index + 3);
 		//Circle->triangle(index + 1, index + 2, index + 3);
 
-		Circle->index(index);
-		Circle->index(index + 1);
-		Circle->index(index + 3);
-		Circle->index(index + 1);
-		Circle->index(index + 2);
-		Circle->index(index + 3);
+		Circle->index (index);
+		Circle->index (index + 1);
+		Circle->index (index + 3);
+		Circle->index (index + 1);
+		Circle->index (index + 2);
+		Circle->index (index + 3);
 
+		//in order to make object both-side visible, indexes of each triangle also must be defined in inverse order
+		Circle->index (index + 2);
+		Circle->index (index + 1);
+		Circle->index (index + 3);
+		Circle->index (index + 1);
+		Circle->index (index);
+		Circle->index (index + 3);
 
 		//triangle and quad are just easier shortcuts of index		
 
 		//Circle->quad(index, index + 1, index + 2, index + 3); 
 		index += 4;
-		break;
+		//break;
+
+
+
+
+
 	}
 	Circle->end();
 	CircleNode->attachObject(Circle);
 	CircleNode->setPosition (0,-300,-500);
+
+
+	float distFromCentre = radius - thickness;
+	int itemIndex = 0;
+	char str2[50];
+	filesNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("FilesNode");
+	filesNode->setPosition (0, -300, -500);
+
+	for (float y = radius - thickness; y <= radius; y += radius / 45)
+	{
+			
+
+
+		for (float theta = 0; theta <= Ogre::Math::PI; theta += Ogre::Math::PI / (distFromCentre)) 
+		{
+			sprintf(str2, "file%d", itemIndex++);
+			Ogre::Entity* file = mSceneMgr->createEntity(str2,"cube.mesh");
+			Ogre::SceneNode* fsn = filesNode->createChildSceneNode(str2);
+			fsn->attachObject(file);
+			fsn->setPosition(y * cos(theta), 0, y * sin(theta));
+			fsn->scale(.02,.02,.02);
+		}
+
+		distFromCentre += radius / 45;
+
+	}
+		
 	
 
 	count = 0;

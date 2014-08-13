@@ -25,6 +25,7 @@ private:
 	Ogre::SceneNode* handNode;
 	Ogre::SceneNode *palmNode;
 	Ogre::SceneNode* fingersNode;
+	Ogre::SceneNode* filesNode;
 	float previousFramePitch;
 	float previousFrameYaw;
 	float previousFrameRoll;

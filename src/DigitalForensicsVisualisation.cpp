@@ -1,6 +1,6 @@
 #include "DigitalForensicsVisualisation.h"
 #include <sstream>
-
+#include <math.h>
 //mysql
 #include "mysql.h"
 #include "my_global.h"
@@ -240,12 +240,12 @@ void DigitalForensicsVisualisation::createScene(void)
 
 	Circle->begin("BaseWhite", Ogre::RenderOperation::OT_TRIANGLE_LIST);
 	const float accuracy = 45;
-	const float radius = 145;
-	const float thickness = 100;
+	const float radius = 2000;
+	const float thickness = 1955;
 	unsigned int index = 0;
 	
 	
-	for (float theta = 0; theta <= Ogre::Math::PI; theta += Ogre::Math::PI / (accuracy)) 
+	for (float theta = 0; theta <= Ogre::Math::PI * 1.8; theta += Ogre::Math::PI / (accuracy)) 
 	{
 		// TL: top-left, BR: bottom-right
  /*TL*/ Circle->position(radius * cos(theta), 0, radius * sin(theta)); 
@@ -298,22 +298,25 @@ void DigitalForensicsVisualisation::createScene(void)
 	filesNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("FilesNode");
 	filesNode->setPosition (0, -300, -500);
 
-	for (float y = radius - thickness; y <= radius; y += radius / 45)
+	for (float y = radius - thickness; y <= radius; y += Ogre::Math::PI * 6)
 	{
 			
 
 
-		for (float theta = 0; theta <= Ogre::Math::PI; theta += Ogre::Math::PI / (distFromCentre)) 
+		for (float theta = 0; theta <= Ogre::Math::PI * 1.8; theta += Ogre::Math::PI / (distFromCentre / 6)) 
 		{
+				
 			sprintf(str2, "file%d", itemIndex++);
 			Ogre::Entity* file = mSceneMgr->createEntity(str2,"cube.mesh");
 			Ogre::SceneNode* fsn = filesNode->createChildSceneNode(str2);
 			fsn->attachObject(file);
 			fsn->setPosition(y * cos(theta), 0, y * sin(theta));
-			fsn->scale(.02,.02,.02);
+			fsn->scale(.09,.09,.09);
+			OutputDebugString(str2);
+			OutputDebugString("\n");
 		}
 
-		distFromCentre += radius / 45;
+		distFromCentre += Ogre::Math::PI * 6;
 
 	}
 		

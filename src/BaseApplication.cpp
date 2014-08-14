@@ -113,7 +113,7 @@ void BaseApplication::createFrameListener(void)
     //mTrayMgr->showLogo(OgreBites::TL_BOTTOMRIGHT);
 	/*Ogre::DisplayString ds = "anils label";
 	mTrayMgr->createLabel(OgreBites::TL_LEFT,"AnilLabel",ds,150.0f);*/
-	mTrayMgr->createTextBox(OgreBites::TL_TOPLEFT,"haydar","tayyar",200.0f,200.0f);
+	//mTrayMgr->createTextBox(OgreBites::TL_TOPLEFT,"haydar","tayyar",200.0f,200.0f);
     mTrayMgr->hideCursor();
 
     // create a params panel for displaying sample details

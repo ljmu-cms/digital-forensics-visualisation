@@ -4,7 +4,8 @@
 
 #include "BaseApplication.h"
 #include "SampleListener.h"
-
+#include <stdio.h>
+#include <stdlib.h>
 #include <Terrain/OgreTerrain.h>
 #include <Terrain/OgreTerrainGroup.h>
 #include "Entity.h"
@@ -31,11 +32,15 @@ private:
 	float previousFrameRoll;
 	bool handOrientationFlag;
 
+	Ogre::ManualObject* const cube(bool isFrustum);
+	
+
 public:
 	
 	Entity e;
     DigitalForensicsVisualisation(void);
     virtual ~DigitalForensicsVisualisation(void);
+	int cubeCount;
 	//OgreBites::Label* mInfoLabel;
 
 protected:

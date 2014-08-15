@@ -16,8 +16,6 @@
 #include "dirent.h" 
 #include <sys/stat.h>
 #include <fstream>
-#include <stdio.h>
-#include <stdlib.h>
 #include <time.h>
 #define is_regular 0100000
 //end filesystem
@@ -109,19 +107,104 @@ void scan (const char* directory)
 }
 
 
-
 Ogre::Vector3 toVector (Vector leapVector)
 {
 	return Ogre::Vector3(leapVector.x, leapVector.y, leapVector.z);
 }
 
+	
+	
 
+//-------------------------------------------------------------------------------------
+Ogre::ManualObject* const DigitalForensicsVisualisation::cube (bool isFrustum = false)
+{
+	char* name = (char*) malloc (32);
+	sprintf(name, "cube%d", app.cubeCount++);
+	Ogre::ManualObject* cube = mSceneMgr->createManualObject(name);
+
+	cube->begin("BaseWhite", Ogre::RenderOperation::OT_TRIANGLE_LIST);
+
+	Ogre::Vector3 centre(50, 50, 50);
+	Ogre::Vector3 position;
+	//bottom points
+	//0
+	position.z = position. y = 0; 
+	position.x = 0;
+	Ogre::Vector3 normal = (position - centre);	normal.normalise();
+	cube->position(position);
+	cube->normal(normal);
+	//1
+	position.x = 100; // 100, 0, 0
+	normal = (position - centre);	normal.normalise();
+	cube->position(position);
+	cube->normal(normal);
+	//2
+	position.z = 100; position.x = 0; 
+	normal = (position - centre);	normal.normalise();
+	cube->position(position);
+	cube->normal(normal);
+	////3
+	position.x = 100;
+	normal = (position - centre); normal.normalise();
+	cube->position(position);
+	cube->normal(normal);
+	////top points
+	////4
+	position.y = 100;
+	position.x = isFrustum ? 25 : 0;
+	position.z = isFrustum ? 25 : 0; 
+	normal = (position - centre);	normal.normalise();
+	cube->position(position);
+	cube->normal(normal);
+	////5
+	position.x = isFrustum ? 75 : 100;
+	normal = (position - centre);	normal.normalise();
+	cube->position(position);
+	cube->normal(normal);
+	////6
+	position.x = isFrustum ? 25 : 0; position.z = isFrustum ? 75 : 100;
+	normal = (position - centre);	normal.normalise();
+	cube->position(position);
+	cube->normal(normal);
+	////7
+	position.x = isFrustum ? 75 : 100;
+	normal = (position - centre); normal.normalise();
+	cube->position(position);
+	cube->normal(normal);
+
+	
+	cube->triangle(0,1,2);//NEGATIVE
+	cube->triangle(3,2,1);
+
+	cube->triangle(6,5,4);//POSITIVE
+	cube->triangle(5,6,7);
+
+	cube->triangle(0,2,4);
+	cube->triangle(6,4,2);
+	
+	cube->triangle(5,3,1); 
+	cube->triangle(3,5,7);
+	
+	cube->triangle(2,3,6);
+	cube->triangle(7,6,3);
+	
+	cube->triangle(4,1,0);
+	cube->triangle(1,4,5);
+
+
+	cube->end();
+	free (name);
+	return cube;
+
+
+}
 
 //-------------------------------------------------------------------------------------
 DigitalForensicsVisualisation::DigitalForensicsVisualisation(void)
 {
 	previousFramePitch = previousFrameYaw = previousFrameRoll = 0;
 	handOrientationFlag = false;
+	cubeCount = 0;
 	
 	
 	
@@ -235,61 +318,61 @@ void DigitalForensicsVisualisation::createScene(void)
 
 
 
-	Ogre::ManualObject* Circle = mSceneMgr->createManualObject("Circle");
-	Ogre::SceneNode* CircleNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("CircleNode");
+	//Ogre::ManualObject* Circle = mSceneMgr->createManualObject("Circle");
+	//Ogre::SceneNode* CircleNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("CircleNode");
 
-	Circle->begin("BaseWhite", Ogre::RenderOperation::OT_TRIANGLE_LIST);
+	//Circle->begin("BaseWhite", Ogre::RenderOperation::OT_TRIANGLE_LIST);
 	const float accuracy = 45;
 	const float radius = 2000;
 	const float thickness = 1955;
 	unsigned int index = 0;
 	
-	
-	for (float theta = 0; theta <= Ogre::Math::PI * 1.8; theta += Ogre::Math::PI / (accuracy)) 
-	{
-		// TL: top-left, BR: bottom-right
- /*TL*/ Circle->position(radius * cos(theta), 0, radius * sin(theta)); 
-		Circle->normal(radius * cos(theta), 90, radius * sin(theta)); 
- /*TR*/ Circle->position(radius * cos(theta - Ogre::Math::PI / accuracy),0, radius * sin(theta - Ogre::Math::PI / accuracy));
-		Circle->normal(radius * cos(theta - Ogre::Math::PI / accuracy),90, radius * sin(theta - Ogre::Math::PI / accuracy));
- /*BR*/ Circle->position((radius - thickness) * cos(theta - Ogre::Math::PI / accuracy), 0, (radius - thickness) * sin(theta - Ogre::Math::PI / accuracy));
-		Circle->normal((radius - thickness) * cos(theta - Ogre::Math::PI / accuracy), 90, (radius - thickness) * sin(theta - Ogre::Math::PI / accuracy));
- /*BL*/ Circle->position((radius - thickness) * cos(theta), 0, (radius - thickness) * sin(theta));
-		Circle->normal((radius - thickness) * cos(theta), 90, (radius - thickness) * sin(theta));
+	//
+	//for (float theta = 0; theta <= Ogre::Math::PI * 1.8; theta += Ogre::Math::PI / (accuracy)) 
+	//{
+	//	// TL: top-left, BR: bottom-right
+ ///*TL*/ Circle->position(radius * cos(theta), 0, radius * sin(theta)); 
+	//	Circle->normal(radius * cos(theta), 90, radius * sin(theta)); 
+ ///*TR*/ Circle->position(radius * cos(theta - Ogre::Math::PI / accuracy),0, radius * sin(theta - Ogre::Math::PI / accuracy));
+	//	Circle->normal(radius * cos(theta - Ogre::Math::PI / accuracy),90, radius * sin(theta - Ogre::Math::PI / accuracy));
+ ///*BR*/ Circle->position((radius - thickness) * cos(theta - Ogre::Math::PI / accuracy), 0, (radius - thickness) * sin(theta - Ogre::Math::PI / accuracy));
+	//	Circle->normal((radius - thickness) * cos(theta - Ogre::Math::PI / accuracy), 90, (radius - thickness) * sin(theta - Ogre::Math::PI / accuracy));
+ ///*BL*/ Circle->position((radius - thickness) * cos(theta), 0, (radius - thickness) * sin(theta));
+	//	Circle->normal((radius - thickness) * cos(theta), 90, (radius - thickness) * sin(theta));
 
-		
-		//Circle->triangle(index, index + 1, index + 3);
-		//Circle->triangle(index + 1, index + 2, index + 3);
+	//	
+	//	//Circle->triangle(index, index + 1, index + 3);
+	//	//Circle->triangle(index + 1, index + 2, index + 3);
 
-		Circle->index (index);
-		Circle->index (index + 1);
-		Circle->index (index + 3);
-		Circle->index (index + 1);
-		Circle->index (index + 2);
-		Circle->index (index + 3);
+	//	Circle->index (index);
+	//	Circle->index (index + 1);
+	//	Circle->index (index + 3);
+	//	Circle->index (index + 1);
+	//	Circle->index (index + 2);
+	//	Circle->index (index + 3);
 
-		//in order to make object both-side visible, indexes of each triangle also must be defined in inverse order
-		Circle->index (index + 2);
-		Circle->index (index + 1);
-		Circle->index (index + 3);
-		Circle->index (index + 1);
-		Circle->index (index);
-		Circle->index (index + 3);
+	//	//in order to make object both-side visible, indexes of each triangle also must be defined in inverse order
+	//	Circle->index (index + 2);
+	//	Circle->index (index + 1);
+	//	Circle->index (index + 3);
+	//	Circle->index (index + 1);
+	//	Circle->index (index);
+	//	Circle->index (index + 3);
 
-		//triangle and quad are just easier shortcuts of index		
+	//	//triangle and quad are just easier shortcuts of index		
 
-		//Circle->quad(index, index + 1, index + 2, index + 3); 
-		index += 4;
-		//break;
-
-
+	//	//Circle->quad(index, index + 1, index + 2, index + 3); 
+	//	index += 4;
+	//	//break;
 
 
 
-	}
-	Circle->end();
-	CircleNode->attachObject(Circle);
-	CircleNode->setPosition (0,-300,-500);
+
+
+	//}
+	//Circle->end();
+	//CircleNode->attachObject(Circle);
+	//CircleNode->setPosition (0,-300,-500);
 
 
 	float distFromCentre = radius - thickness;
@@ -307,9 +390,8 @@ void DigitalForensicsVisualisation::createScene(void)
 		{
 				
 			sprintf(str2, "file%d", itemIndex++);
-			Ogre::Entity* file = mSceneMgr->createEntity(str2,"cube.mesh");
 			Ogre::SceneNode* fsn = filesNode->createChildSceneNode(str2);
-			fsn->attachObject(file);
+			fsn->attachObject(cube(true));
 			fsn->setPosition(y * cos(theta), 0, y * sin(theta));
 			fsn->scale(.09,.09,.09);
 			OutputDebugString(str2);
@@ -344,7 +426,9 @@ void DigitalForensicsVisualisation::createViewports(void)
     Ogre::Viewport* vp = mWindow->addViewport(mCamera);
     vp->setBackgroundColour(Ogre::ColourValue(.2,.1,.3));
     // Alter the camera aspect ratio to match the viewport
-    mCamera->setAspectRatio(Ogre::Real(vp->getActualWidth()) / Ogre::Real(vp->getActualHeight()));  
+	mCamera->setFarClipDistance(1000);
+	
+	mCamera->setAspectRatio(Ogre::Real(vp->getActualWidth()) / Ogre::Real(vp->getActualHeight()));  
 }
  
 

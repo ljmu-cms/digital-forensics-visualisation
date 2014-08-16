@@ -33,6 +33,7 @@ private:
 	bool handOrientationFlag;
 
 	Ogre::ManualObject* const cube(bool isFrustum);
+	Ogre::ManualObject* const pyramid();
 	
 
 public:
@@ -41,6 +42,7 @@ public:
     DigitalForensicsVisualisation(void);
     virtual ~DigitalForensicsVisualisation(void);
 	int cubeCount;
+	int pyramidCount;
 	//OgreBites::Label* mInfoLabel;
 
 protected:

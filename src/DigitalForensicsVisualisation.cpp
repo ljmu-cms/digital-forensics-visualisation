@@ -113,7 +113,53 @@ Ogre::Vector3 toVector (Vector leapVector)
 }
 
 	
+
+//-------------------------------------------------------------------------------------
+Ogre::ManualObject* const DigitalForensicsVisualisation::pyramid()
+{
+	char* name = (char*) malloc (32);
+	sprintf(name, "pyramid%d", app.pyramidCount++);
+	Ogre::ManualObject* pyramid = mSceneMgr->createManualObject(name);
+
+	pyramid->begin("BaseWhite", Ogre::RenderOperation::OT_TRIANGLE_LIST);
+
+	Ogre::Vector3 normal;
+
+	pyramid->position(0,0,0);    // 0
+	normal.x = normal.y = normal.z = -50;
+	normal.normalise();
+	pyramid->normal(normal);
+
+	pyramid->position(100,0,0);  // 1
+	normal.x = 50; normal.y = normal.z = -50; 
+	normal.normalise();
+	pyramid->normal(normal);
+
+	pyramid->position(50,0,100); // 2
+	normal.x = 0; normal.y = -50; normal.z = 50;
+	normal.normalise();
+	pyramid->normal(normal);
+
+	pyramid->position(50,100,50);// 3
+	normal.x = normal.z = 0; normal.z = 50; 
+	normal.normalise();
+	pyramid->normal(normal);
+
+	pyramid->triangle(0,1,2); //
+	pyramid->triangle(3,1,0); 
+	pyramid->triangle(3,2,1); 
+	pyramid->triangle(0,2,3); //
+
 	
+
+	pyramid->end();
+	free (name);
+	return pyramid;
+
+
+
+
+}
 
 //-------------------------------------------------------------------------------------
 Ogre::ManualObject* const DigitalForensicsVisualisation::cube (bool isFrustum = false)
@@ -204,7 +250,7 @@ DigitalForensicsVisualisation::DigitalForensicsVisualisation(void)
 {
 	previousFramePitch = previousFrameYaw = previousFrameRoll = 0;
 	handOrientationFlag = false;
-	cubeCount = 0;
+	cubeCount = pyramidCount = 0;
 	
 	
 	
@@ -323,8 +369,8 @@ void DigitalForensicsVisualisation::createScene(void)
 
 	//Circle->begin("BaseWhite", Ogre::RenderOperation::OT_TRIANGLE_LIST);
 	const float accuracy = 45;
-	const float radius = 2000;
-	const float thickness = 1955;
+	const float radius = 200;
+	const float thickness = 155;
 	unsigned int index = 0;
 	
 	//
@@ -391,7 +437,7 @@ void DigitalForensicsVisualisation::createScene(void)
 				
 			sprintf(str2, "file%d", itemIndex++);
 			Ogre::SceneNode* fsn = filesNode->createChildSceneNode(str2);
-			fsn->attachObject(cube(true));
+			fsn->attachObject(pyramid());
 			fsn->setPosition(y * cos(theta), 0, y * sin(theta));
 			fsn->scale(.09,.09,.09);
 			OutputDebugString(str2);

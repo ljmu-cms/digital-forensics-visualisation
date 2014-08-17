@@ -34,6 +34,7 @@ private:
 
 	Ogre::ManualObject* const cube(bool isFrustum);
 	Ogre::ManualObject* const pyramid();
+	Ogre::ManualObject* const cylinder();
 	
 
 public:
@@ -43,6 +44,7 @@ public:
     virtual ~DigitalForensicsVisualisation(void);
 	int cubeCount;
 	int pyramidCount;
+	int cylinderCount;
 	//OgreBites::Label* mInfoLabel;
 
 protected:

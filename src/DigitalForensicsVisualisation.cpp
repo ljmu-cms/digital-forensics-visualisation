@@ -113,7 +113,56 @@ Ogre::Vector3 toVector (Vector leapVector)
 }
 
 	
+//-------------------------------------------------------------------------------------
+Ogre::ManualObject* const DigitalForensicsVisualisation::cylinder()
+{
+	char* name = (char*) malloc (32);
+	sprintf(name, "cylinder%d", app.cylinderCount++);
+	Ogre::ManualObject* cylinder = mSceneMgr->createManualObject(name);
 
+	cylinder->begin("BaseWhite", Ogre::RenderOperation::OT_TRIANGLE_LIST);
+	const float accuracy = 20;
+	const float radius = 50;
+	unsigned int index = 2;
+	
+	
+	cylinder->position(0,0,0);
+	cylinder->normal(0,90,0);
+
+	cylinder->position(0,-90,0);
+	cylinder->normal(0,-91,0);
+
+
+	for (float theta = 0; theta <= Ogre::Math::PI * 2; theta += Ogre::Math::PI / (accuracy)) 
+	{
+		// TL: top-left, BR: bottom-right
+ /*TL*/ cylinder->position(radius * cos(theta), 0, radius * sin(theta)); 
+		cylinder->normal(radius * cos(theta), 90, radius * sin(theta)); 
+ /*TR*/ cylinder->position(radius * cos(theta - Ogre::Math::PI / accuracy), 0, radius * sin(theta - Ogre::Math::PI / accuracy));
+		cylinder->normal(radius * cos(theta - Ogre::Math::PI / accuracy), 90, radius * sin(theta - Ogre::Math::PI / accuracy));
+	
+ /*TL*/ cylinder->position(radius * cos(theta), -90, radius * sin(theta)); 
+		cylinder->normal(radius * cos(theta), -91, radius * sin(theta)); 
+ /*TR*/ cylinder->position(radius * cos(theta - Ogre::Math::PI / accuracy), -90, radius * sin(theta - Ogre::Math::PI / accuracy));
+		cylinder->normal(radius * cos(theta - Ogre::Math::PI / accuracy), -91, radius * sin(theta - Ogre::Math::PI / accuracy));
+
+		
+		cylinder->triangle(index, index + 1, 0);
+		cylinder->triangle(1, index + 3, index + 2);
+		cylinder->triangle(index, index + 2, index + 3);
+		cylinder->triangle(index + 3, index + 1, index);
+
+		index += 4;
+
+	}
+
+	cylinder->end();
+	free(name);
+	return cylinder;
+
+
+
+}
 //-------------------------------------------------------------------------------------
 Ogre::ManualObject* const DigitalForensicsVisualisation::pyramid()
 {
@@ -250,7 +299,7 @@ DigitalForensicsVisualisation::DigitalForensicsVisualisation(void)
 {
 	previousFramePitch = previousFrameYaw = previousFrameRoll = 0;
 	handOrientationFlag = false;
-	cubeCount = pyramidCount = 0;
+	cubeCount = pyramidCount = cylinderCount = 0;
 	
 	
 	
@@ -364,61 +413,71 @@ void DigitalForensicsVisualisation::createScene(void)
 
 
 
-	//Ogre::ManualObject* Circle = mSceneMgr->createManualObject("Circle");
-	//Ogre::SceneNode* CircleNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("CircleNode");
-
-	//Circle->begin("BaseWhite", Ogre::RenderOperation::OT_TRIANGLE_LIST);
 	const float accuracy = 45;
 	const float radius = 200;
 	const float thickness = 155;
 	unsigned int index = 0;
+
+
+
+		Ogre::ManualObject* Circle = mSceneMgr->createManualObject("Circle");
+	Ogre::SceneNode* CircleNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("CircleNode");
+
+	Circle->begin("BaseWhite", Ogre::RenderOperation::OT_TRIANGLE_LIST);
 	
-	//
-	//for (float theta = 0; theta <= Ogre::Math::PI * 1.8; theta += Ogre::Math::PI / (accuracy)) 
-	//{
-	//	// TL: top-left, BR: bottom-right
- ///*TL*/ Circle->position(radius * cos(theta), 0, radius * sin(theta)); 
-	//	Circle->normal(radius * cos(theta), 90, radius * sin(theta)); 
- ///*TR*/ Circle->position(radius * cos(theta - Ogre::Math::PI / accuracy),0, radius * sin(theta - Ogre::Math::PI / accuracy));
-	//	Circle->normal(radius * cos(theta - Ogre::Math::PI / accuracy),90, radius * sin(theta - Ogre::Math::PI / accuracy));
- ///*BR*/ Circle->position((radius - thickness) * cos(theta - Ogre::Math::PI / accuracy), 0, (radius - thickness) * sin(theta - Ogre::Math::PI / accuracy));
-	//	Circle->normal((radius - thickness) * cos(theta - Ogre::Math::PI / accuracy), 90, (radius - thickness) * sin(theta - Ogre::Math::PI / accuracy));
- ///*BL*/ Circle->position((radius - thickness) * cos(theta), 0, (radius - thickness) * sin(theta));
-	//	Circle->normal((radius - thickness) * cos(theta), 90, (radius - thickness) * sin(theta));
+	
+	
+	for (float theta = 0; theta <= Ogre::Math::PI * 1.8; theta += Ogre::Math::PI / (accuracy)) 
+	{
+		// TL: top-left, BR: bottom-right
+ /*TL*/ Circle->position(radius * cos(theta), 0, radius * sin(theta)); 
+		Circle->normal(radius * cos(theta), 90, radius * sin(theta)); 
+ /*TR*/ Circle->position(radius * cos(theta - Ogre::Math::PI / accuracy),0, radius * sin(theta - Ogre::Math::PI / accuracy));
+		Circle->normal(radius * cos(theta - Ogre::Math::PI / accuracy),90, radius * sin(theta - Ogre::Math::PI / accuracy));
+ /*BR*/ Circle->position((radius - thickness) * cos(theta - Ogre::Math::PI / accuracy), 0, (radius - thickness) * sin(theta - Ogre::Math::PI / accuracy));
+		Circle->normal((radius - thickness) * cos(theta - Ogre::Math::PI / accuracy), 90, (radius - thickness) * sin(theta - Ogre::Math::PI / accuracy));
+ /*BL*/ Circle->position((radius - thickness) * cos(theta), 0, (radius - thickness) * sin(theta));
+		Circle->normal((radius - thickness) * cos(theta), 90, (radius - thickness) * sin(theta));
 
-	//	
-	//	//Circle->triangle(index, index + 1, index + 3);
-	//	//Circle->triangle(index + 1, index + 2, index + 3);
+		
+		//Circle->triangle(index, index + 1, index + 3);
+		//Circle->triangle(index + 1, index + 2, index + 3);
 
-	//	Circle->index (index);
-	//	Circle->index (index + 1);
-	//	Circle->index (index + 3);
-	//	Circle->index (index + 1);
-	//	Circle->index (index + 2);
-	//	Circle->index (index + 3);
+		Circle->index (index);
+		Circle->index (index + 1);
+		Circle->index (index + 3);
+		Circle->index (index + 1);
+		Circle->index (index + 2);
+		Circle->index (index + 3);
 
-	//	//in order to make object both-side visible, indexes of each triangle also must be defined in inverse order
-	//	Circle->index (index + 2);
-	//	Circle->index (index + 1);
-	//	Circle->index (index + 3);
-	//	Circle->index (index + 1);
-	//	Circle->index (index);
-	//	Circle->index (index + 3);
+		//in order to make object both-side visible, indexes of each triangle also must be defined in inverse order
+		Circle->index (index + 2);
+		Circle->index (index + 1);
+		Circle->index (index + 3);
+		Circle->index (index + 1);
+		Circle->index (index);
+		Circle->index (index + 3);
 
-	//	//triangle and quad are just easier shortcuts of index		
+		//triangle and quad are just easier shortcuts of index		
 
-	//	//Circle->quad(index, index + 1, index + 2, index + 3); 
-	//	index += 4;
-	//	//break;
-
-
-
+		//Circle->quad(index, index + 1, index + 2, index + 3); 
+		index += 4;
+		//break;
 
 
-	//}
-	//Circle->end();
-	//CircleNode->attachObject(Circle);
-	//CircleNode->setPosition (0,-300,-500);
+
+
+
+	}
+	Circle->end();
+	CircleNode->attachObject(Circle);
+	CircleNode->setPosition (0,-400,-500);
+
+
+
+
+
+
 
 
 	float distFromCentre = radius - thickness;
@@ -437,7 +496,7 @@ void DigitalForensicsVisualisation::createScene(void)
 				
 			sprintf(str2, "file%d", itemIndex++);
 			Ogre::SceneNode* fsn = filesNode->createChildSceneNode(str2);
-			fsn->attachObject(pyramid());
+			fsn->attachObject(cylinder());
 			fsn->setPosition(y * cos(theta), 0, y * sin(theta));
 			fsn->scale(.09,.09,.09);
 			OutputDebugString(str2);

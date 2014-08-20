@@ -114,7 +114,7 @@ void BaseApplication::createFrameListener(void)
 	/*Ogre::DisplayString ds = "anils label";
 	mTrayMgr->createLabel(OgreBites::TL_LEFT,"AnilLabel",ds,150.0f);*/
 	//mTrayMgr->createTextBox(OgreBites::TL_TOPLEFT,"haydar","tayyar",200.0f,200.0f);
-    mTrayMgr->hideCursor();
+    //mTrayMgr->hideCursor();
 
     // create a params panel for displaying sample details
     Ogre::StringVector items;
@@ -135,6 +135,19 @@ void BaseApplication::createFrameListener(void)
     mDetailsPanel->setParamValue(10, "Solid");
     mDetailsPanel->hide();
 
+	mTrayMgr->createLabel(OgreBites::TL_TOPLEFT,"label1","Accessed files between,",100);
+
+	Ogre::StringVector dayItems;
+
+	for (int i = 1; i <= 31; ++i)
+	{
+		char str[4];
+		sprintf(str,"%d",i);
+		dayItems.push_back(str);
+	}
+
+	mTrayMgr->createThickSelectMenu(OgreBites::TL_TOPLEFT,"day selector","day",200,30,dayItems);
+	
     mRoot->addFrameListener(this);
 }
 //-------------------------------------------------------------------------------------

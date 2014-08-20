@@ -25,7 +25,7 @@ using std::endl;
 
 char* query;
 
-unsigned long long count;
+
 
 
 MYSQL *mysqlPtr; // Create a pointer to the MySQL instance
@@ -61,35 +61,36 @@ void scan (const char* directory)
 
 			//OutputDebugString(fileName);
 			//OutputDebugString("\n");
-
+			Date d;
 			
 			app.e.name = pent->d_name;
 			app.e.directory = directory;
 			app.e.size = st.st_size;
 			app.e.full_name = fileName;
 
-			app.e.read_permission = (st.st_mode & 00400) ? 1 : 0;
 			app.e.write_permission = (st.st_mode & 00200) ? 1 : 0;
-			app.e.execute_permission = (st.st_mode & 00100) ? 1 : 0;
+			app.e.access_permission = (st.st_mode & 00100) ? 1 : 0;
 			
 			app.e.creation_time = ctime(&st.st_ctime);
+			app.e.access_time = ctime(&st.st_atime);
 			app.e.modification_time = ctime(&st.st_mtime);
-			app.e.execution_time = ctime(&st.st_atime);
 			
+			
+			app.e.c = app.e.parseDate(app.e.creation_time);
+			app.e.a = app.e.parseDate(app.e.access_time);
+			app.e.m = app.e.parseDate(app.e.modification_time);
+
 			app.e.setExtension();
 
-			count++;
-			//mysqlPtr = mysql_init(NULL); // Initialise the instance
-			//mysqlPtr=mysql_real_connect(mysqlPtr,SERVER,USER,PASSWORD,DATABASE,0,NULL,0);
-			////
-			//*query = NULL;
+			
+
 
 			std::stringstream ss;
-			ss << "INSERT INTO `test`.`file` ( `name`, `directory`, `size`, `extension`, `read_permission`, `write_permission`,`execute_permission`, `c_time`,`a_time`,`m_time`) VALUES ("<< "'"
+			ss << "INSERT INTO `test`.`file` ( `name`, `directory`, `size`, `extension`, `write_permission`,`access_permission`, `c_time`,`a_time`,`m_time`,`c`,`a`,`m`) VALUES ("<< "'"
 				<< app.e.name << "', " << "'"
-				<< app.e.directory << "', " << "'" << app.e.size << "', " << "'" << app.e.extension << "', " << "'"
-				<< app.e.read_permission << "', " << "'" << app.e.write_permission << "', " << "'" << app.e.execute_permission << "', " << "'" 
-				<< app.e.creation_time << "', " << "'" << app.e.execution_time << "', " << "'" << app.e.modification_time << "'); ";
+				<< app.e.directory << "', " << "'" << app.e.size << "', " << "'" << app.e.extension << "', " << "'" 
+				<< app.e.write_permission << "', " << "'" << app.e.access_permission << "', " << "'" 
+				<< app.e.creation_time << "', " << "'" << app.e.access_time << "', " << "'" << app.e.modification_time << "', " << "'" << app.e.c << "', " << "'" << app.e.a << "', " << "'" << app.e.m  <<"'); ";
 
 			std::string insertQuery = ss.str();
 
@@ -114,36 +115,50 @@ Ogre::Vector3 toVector (Vector leapVector)
 
 	
 //-------------------------------------------------------------------------------------
-Ogre::ManualObject* const DigitalForensicsVisualisation::cylinder()
+Ogre::ManualObject* const DigitalForensicsVisualisation::cylinder(ColorMap cm)
 {
+	Ogre::ColourValue cv;
+	cv.r = cm.r; cv.g = cm.g; cv.b = cm.b; cv.a = 0.65;
+
+
+
+
+	
+	
 	char* name = (char*) malloc (32);
 	sprintf(name, "cylinder%d", app.cylinderCount++);
 	Ogre::ManualObject* cylinder = mSceneMgr->createManualObject(name);
 
-	cylinder->begin("BaseWhite", Ogre::RenderOperation::OT_TRIANGLE_LIST);
+	cylinder->begin("MyMaterial1", Ogre::RenderOperation::OT_TRIANGLE_LIST);
 	const float accuracy = 20;
 	const float radius = 50;
 	unsigned int index = 2;
 	
 	
 	cylinder->position(0,0,0);
+	cylinder->colour(cv);
 	cylinder->normal(0,90,0);
 
 	cylinder->position(0,-90,0);
+	cylinder->colour(cv);
 	cylinder->normal(0,-91,0);
 
 
 	for (float theta = 0; theta <= Ogre::Math::PI * 2; theta += Ogre::Math::PI / (accuracy)) 
 	{
 		// TL: top-left, BR: bottom-right
- /*TL*/ cylinder->position(radius * cos(theta), 0, radius * sin(theta)); 
+ /*TL*/ cylinder->position(radius * cos(theta), 0, radius * sin(theta));
+		cylinder->colour(cv); 
 		cylinder->normal(radius * cos(theta), 90, radius * sin(theta)); 
  /*TR*/ cylinder->position(radius * cos(theta - Ogre::Math::PI / accuracy), 0, radius * sin(theta - Ogre::Math::PI / accuracy));
+		cylinder->colour(cv);
 		cylinder->normal(radius * cos(theta - Ogre::Math::PI / accuracy), 90, radius * sin(theta - Ogre::Math::PI / accuracy));
 	
  /*TL*/ cylinder->position(radius * cos(theta), -90, radius * sin(theta)); 
+		cylinder->colour(cv);
 		cylinder->normal(radius * cos(theta), -91, radius * sin(theta)); 
  /*TR*/ cylinder->position(radius * cos(theta - Ogre::Math::PI / accuracy), -90, radius * sin(theta - Ogre::Math::PI / accuracy));
+		cylinder->colour(cv);
 		cylinder->normal(radius * cos(theta - Ogre::Math::PI / accuracy), -91, radius * sin(theta - Ogre::Math::PI / accuracy));
 
 		
@@ -157,6 +172,7 @@ Ogre::ManualObject* const DigitalForensicsVisualisation::cylinder()
 	}
 
 	cylinder->end();
+	
 	free(name);
 	return cylinder;
 
@@ -164,32 +180,40 @@ Ogre::ManualObject* const DigitalForensicsVisualisation::cylinder()
 
 }
 //-------------------------------------------------------------------------------------
-Ogre::ManualObject* const DigitalForensicsVisualisation::pyramid()
+Ogre::ManualObject* const DigitalForensicsVisualisation::pyramid(ColorMap cm)
 {
+	Ogre::ColourValue cv;
+	cv.r = cm.r; cv.g = cm.g; cv.b = cm.b; cv.a = 0.65;
+	
+
 	char* name = (char*) malloc (32);
 	sprintf(name, "pyramid%d", app.pyramidCount++);
 	Ogre::ManualObject* pyramid = mSceneMgr->createManualObject(name);
 
-	pyramid->begin("BaseWhite", Ogre::RenderOperation::OT_TRIANGLE_LIST);
+	pyramid->begin("MyMaterial1", Ogre::RenderOperation::OT_TRIANGLE_LIST);
 
 	Ogre::Vector3 normal;
 
 	pyramid->position(0,0,0);    // 0
+	pyramid->colour(cv);
 	normal.x = normal.y = normal.z = -50;
 	normal.normalise();
 	pyramid->normal(normal);
 
 	pyramid->position(100,0,0);  // 1
+	pyramid->colour(cv);
 	normal.x = 50; normal.y = normal.z = -50; 
 	normal.normalise();
 	pyramid->normal(normal);
 
 	pyramid->position(50,0,100); // 2
+	pyramid->colour(cv);
 	normal.x = 0; normal.y = -50; normal.z = 50;
 	normal.normalise();
 	pyramid->normal(normal);
 
 	pyramid->position(50,100,50);// 3
+	pyramid->colour(cv);
 	normal.x = normal.z = 0; normal.z = 50; 
 	normal.normalise();
 	pyramid->normal(normal);
@@ -211,13 +235,17 @@ Ogre::ManualObject* const DigitalForensicsVisualisation::pyramid()
 }
 
 //-------------------------------------------------------------------------------------
-Ogre::ManualObject* const DigitalForensicsVisualisation::cube (bool isFrustum = false)
+Ogre::ManualObject* const DigitalForensicsVisualisation::cube (bool isFrustum, ColorMap cm)
 {
+	Ogre::ColourValue cv;
+	cv.r = cm.r; cv.g = cm.g; cv.b = cm.b; cv.a = 0.65;
+
+
 	char* name = (char*) malloc (32);
 	sprintf(name, "cube%d", app.cubeCount++);
 	Ogre::ManualObject* cube = mSceneMgr->createManualObject(name);
 
-	cube->begin("BaseWhite", Ogre::RenderOperation::OT_TRIANGLE_LIST);
+	cube->begin("MyMaterial1", Ogre::RenderOperation::OT_TRIANGLE_LIST);
 
 	Ogre::Vector3 centre(50, 50, 50);
 	Ogre::Vector3 position;
@@ -227,21 +255,25 @@ Ogre::ManualObject* const DigitalForensicsVisualisation::cube (bool isFrustum = 
 	position.x = 0;
 	Ogre::Vector3 normal = (position - centre);	normal.normalise();
 	cube->position(position);
+	cube->colour(cv);
 	cube->normal(normal);
 	//1
 	position.x = 100; // 100, 0, 0
 	normal = (position - centre);	normal.normalise();
 	cube->position(position);
+	cube->colour(cv);
 	cube->normal(normal);
 	//2
 	position.z = 100; position.x = 0; 
 	normal = (position - centre);	normal.normalise();
 	cube->position(position);
+	cube->colour(cv);
 	cube->normal(normal);
 	////3
 	position.x = 100;
 	normal = (position - centre); normal.normalise();
 	cube->position(position);
+	cube->colour(cv);
 	cube->normal(normal);
 	////top points
 	////4
@@ -250,21 +282,25 @@ Ogre::ManualObject* const DigitalForensicsVisualisation::cube (bool isFrustum = 
 	position.z = isFrustum ? 25 : 0; 
 	normal = (position - centre);	normal.normalise();
 	cube->position(position);
+	cube->colour(cv);
 	cube->normal(normal);
 	////5
 	position.x = isFrustum ? 75 : 100;
 	normal = (position - centre);	normal.normalise();
 	cube->position(position);
+	cube->colour(cv);
 	cube->normal(normal);
 	////6
 	position.x = isFrustum ? 25 : 0; position.z = isFrustum ? 75 : 100;
 	normal = (position - centre);	normal.normalise();
 	cube->position(position);
+	cube->colour(cv);
 	cube->normal(normal);
 	////7
 	position.x = isFrustum ? 75 : 100;
 	normal = (position - centre); normal.normalise();
 	cube->position(position);
+	cube->colour(cv);
 	cube->normal(normal);
 
 	
@@ -300,6 +336,10 @@ DigitalForensicsVisualisation::DigitalForensicsVisualisation(void)
 	previousFramePitch = previousFrameYaw = previousFrameRoll = 0;
 	handOrientationFlag = false;
 	cubeCount = pyramidCount = cylinderCount = 0;
+
+
+
+	
 	
 	
 	
@@ -336,32 +376,12 @@ void DigitalForensicsVisualisation::createScene(void)
     //else{
     //    printf("Connection Failed!\n");
     //}
- //   MYSQL_RES *res_set; /* Create a pointer to recieve the return value.*/
- //   MYSQL_ROW row;  /* Assign variable for rows. */
- //   //mysql_query(mysqlPtr, "INSERT INTO `test`.`table1` (`a`, `b`, `c`) VALUES ('5', 't', 'y');");
-	//mysql_query(mysqlPtr,"SELECT * FROM file");
 
- //   /* Send a query to the database. */
- //   unsigned int i = 0; /* Create a counter for the rows */
- //
- //   res_set = mysql_store_result(mysqlPtr); /* Receive the result and store it in res_set */
- //
- //   unsigned int numrows = mysql_num_rows(res_set); /* Create the count to print all rows */
- //
- //   /* This while is to print all rows and not just the first row found, */
-	//char* debug = (char*) malloc (32);
- //   while ((row = mysql_fetch_row(res_set)) != NULL){
- //       sprintf(debug, "!!%s!!%s!!%s\n",row[i+1] != NULL ?
-	//		row[i+1] : "NULL", row[i+2], row[i+3]);
-	//	OutputDebugString(debug);
-	//	/* Print the row data */
- //   }
-	//free (debug);
- //   
+    
 
 	//mysql_close(mysqlPtr);   /* Close and shutdown */
 
-
+#pragma region objects
 
 	// leap controller and listener objects
 	leapController.addListener(leapSampleListener);
@@ -371,8 +391,8 @@ void DigitalForensicsVisualisation::createScene(void)
 
 
 
-	mSceneMgr->setAmbientLight(Ogre::ColourValue(0.25, 0.25, 0.25));
- 
+	mSceneMgr->setAmbientLight(Ogre::ColourValue(0.05, 0.05, 0.05));
+	
 	//hand
 	handNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("HandNode");
 	handNode->setPosition (0, -300, -500);
@@ -405,77 +425,99 @@ void DigitalForensicsVisualisation::createScene(void)
 
 
  
-    Ogre::Light* pointLight = mSceneMgr->createLight("pointLight");
-    pointLight->setType(Ogre::Light::LT_POINT);
+    pointLight = mSceneMgr->createLight("pointLight");
+	pointLight->setType(Ogre::Light::LT_POINT);
     pointLight->setPosition(Ogre::Vector3(250, 150, 250));
     pointLight->setDiffuseColour(Ogre::ColourValue::White);
     pointLight->setSpecularColour(Ogre::ColourValue::White);
-
+	
+	
+#pragma endregion objects
 
 
 	const float accuracy = 45;
-	const float radius = 200;
-	const float thickness = 155;
+	const float radius = 1000;
+	const float thickness = 955;
 	unsigned int index = 0;
 
 
 
-		Ogre::ManualObject* Circle = mSceneMgr->createManualObject("Circle");
-	Ogre::SceneNode* CircleNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("CircleNode");
+	//	Ogre::ManualObject* Circle = mSceneMgr->createManualObject("Circle");
+	//Ogre::SceneNode* CircleNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("CircleNode");
 
-	Circle->begin("BaseWhite", Ogre::RenderOperation::OT_TRIANGLE_LIST);
-	
-	
-	
-	for (float theta = 0; theta <= Ogre::Math::PI * 1.8; theta += Ogre::Math::PI / (accuracy)) 
-	{
-		// TL: top-left, BR: bottom-right
- /*TL*/ Circle->position(radius * cos(theta), 0, radius * sin(theta)); 
-		Circle->normal(radius * cos(theta), 90, radius * sin(theta)); 
- /*TR*/ Circle->position(radius * cos(theta - Ogre::Math::PI / accuracy),0, radius * sin(theta - Ogre::Math::PI / accuracy));
-		Circle->normal(radius * cos(theta - Ogre::Math::PI / accuracy),90, radius * sin(theta - Ogre::Math::PI / accuracy));
- /*BR*/ Circle->position((radius - thickness) * cos(theta - Ogre::Math::PI / accuracy), 0, (radius - thickness) * sin(theta - Ogre::Math::PI / accuracy));
-		Circle->normal((radius - thickness) * cos(theta - Ogre::Math::PI / accuracy), 90, (radius - thickness) * sin(theta - Ogre::Math::PI / accuracy));
- /*BL*/ Circle->position((radius - thickness) * cos(theta), 0, (radius - thickness) * sin(theta));
-		Circle->normal((radius - thickness) * cos(theta), 90, (radius - thickness) * sin(theta));
+	//Circle->begin("BaseWhite", Ogre::RenderOperation::OT_TRIANGLE_LIST);
+	//
+	//
+	//
+	//for (float theta = 0; theta <= Ogre::Math::PI * 1.8; theta += Ogre::Math::PI / (accuracy)) 
+	//{
+	//	// TL: top-left, BR: bottom-right
+ ///*TL*/ Circle->position(radius * cos(theta), 0, radius * sin(theta)); 
+	//	Circle->normal(radius * cos(theta), 90, radius * sin(theta)); 
+ ///*TR*/ Circle->position(radius * cos(theta - Ogre::Math::PI / accuracy),0, radius * sin(theta - Ogre::Math::PI / accuracy));
+	//	Circle->normal(radius * cos(theta - Ogre::Math::PI / accuracy),90, radius * sin(theta - Ogre::Math::PI / accuracy));
+ ///*BR*/ Circle->position((radius - thickness) * cos(theta - Ogre::Math::PI / accuracy), 0, (radius - thickness) * sin(theta - Ogre::Math::PI / accuracy));
+	//	Circle->normal((radius - thickness) * cos(theta - Ogre::Math::PI / accuracy), 90, (radius - thickness) * sin(theta - Ogre::Math::PI / accuracy));
+ ///*BL*/ Circle->position((radius - thickness) * cos(theta), 0, (radius - thickness) * sin(theta));
+	//	Circle->normal((radius - thickness) * cos(theta), 90, (radius - thickness) * sin(theta));
 
-		
-		//Circle->triangle(index, index + 1, index + 3);
-		//Circle->triangle(index + 1, index + 2, index + 3);
+	//	
+	//	//Circle->triangle(index, index + 1, index + 3);
+	//	//Circle->triangle(index + 1, index + 2, index + 3);
 
-		Circle->index (index);
-		Circle->index (index + 1);
-		Circle->index (index + 3);
-		Circle->index (index + 1);
-		Circle->index (index + 2);
-		Circle->index (index + 3);
+	//	Circle->index (index);
+	//	Circle->index (index + 1);
+	//	Circle->index (index + 3);
+	//	Circle->index (index + 1);
+	//	Circle->index (index + 2);
+	//	Circle->index (index + 3);
 
-		//in order to make object both-side visible, indexes of each triangle also must be defined in inverse order
-		Circle->index (index + 2);
-		Circle->index (index + 1);
-		Circle->index (index + 3);
-		Circle->index (index + 1);
-		Circle->index (index);
-		Circle->index (index + 3);
+	//	//in order to make object both-side visible, indexes of each triangle also must be defined in inverse order
+	//	Circle->index (index + 2);
+	//	Circle->index (index + 1);
+	//	Circle->index (index + 3);
+	//	Circle->index (index + 1);
+	//	Circle->index (index);
+	//	Circle->index (index + 3);
 
-		//triangle and quad are just easier shortcuts of index		
+	//	//triangle and quad are just easier shortcuts of index		
 
-		//Circle->quad(index, index + 1, index + 2, index + 3); 
-		index += 4;
-		//break;
-
-
-
-
-
-	}
-	Circle->end();
-	CircleNode->attachObject(Circle);
-	CircleNode->setPosition (0,-400,-500);
+	//	//Circle->quad(index, index + 1, index + 2, index + 3); 
+	//	index += 4;
+	//	//break;
 
 
 
 
+
+	//}
+	//Circle->end();
+	//CircleNode->attachObject(Circle);
+	//CircleNode->setPosition (0,-400,-500);
+
+
+
+	MYSQL_RES *res_set; /* Create a pointer to recieve the return value.*/
+    MYSQL_ROW row;  /* Assign variable for rows. */
+    //mysql_query(mysqlPtr, "INSERT INTO `test`.`table1` (`a`, `b`, `c`) VALUES ('5', 't', 'y');");
+	mysql_query(mysqlPtr,"SELECT * FROM file");
+
+    /* Send a query to the database. */
+    unsigned int i = 0; /* Create a counter for the rows */
+ 
+    res_set = mysql_store_result(mysqlPtr); /* Receive the result and store it in res_set */
+ 
+    unsigned int numrows = mysql_num_rows(res_set); /* Create the count to print all rows */
+ 
+    /* This while is to print all rows and not just the first row found, */
+	//char* debug = (char*) malloc (32);
+ //   while ((row = mysql_fetch_row(res_set)) != NULL){
+ //       sprintf(debug, "!!%s!!%s!!%s\n",row[i+1] != NULL ?
+	//		row[i+1] : "NULL", row[i+2], row[i+3]);
+	//	OutputDebugString(debug);
+	//	/* Print the row data */
+ //   }
+	//free (debug);
 
 
 
@@ -486,19 +528,60 @@ void DigitalForensicsVisualisation::createScene(void)
 	filesNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("FilesNode");
 	filesNode->setPosition (0, -300, -500);
 
+	srand(time(NULL));
+
 	for (float y = radius - thickness; y <= radius; y += Ogre::Math::PI * 6)
 	{
-			
 
 
 		for (float theta = 0; theta <= Ogre::Math::PI * 1.8; theta += Ogre::Math::PI / (distFromCentre / 6)) 
 		{
-				
+			if ((row = mysql_fetch_row(res_set)) == NULL)
+				break;
+
+			
+			
+			app.e.name = row[0];
+			app.e.directory = row[1];
+			app.e.size = std::stoi(row[2]);
+			app.e.extension = row[3];
+			app.e.write_permission = std::stoi(row[4]);
+			app.e.access_permission = std::stoi(row[5]);
+			app.e.creation_time = row[6];
+			app.e.access_time = row[7];
+			app.e.modification_time = row[8];
+			app.e.c = std::stoi(row[9]);
+			app.e.a = std::stoi(row[10]);
+			app.e.m = std::stoi(row[11]);
+
+
 			sprintf(str2, "file%d", itemIndex++);
 			Ogre::SceneNode* fsn = filesNode->createChildSceneNode(str2);
-			fsn->attachObject(cylinder());
+			
+			ColorMap cm(app.e.extension);
+			
+
+			if (colorTree.search(cm) == NULL)
+				colorTree.insert(cm);
+			else
+				cm = colorTree.search(cm)->data;
+				
+
+		
+
+			
+
+			if ((app.e.write_permission == 1) && (app.e.access_permission == 1))
+				fsn ->attachObject(cube(true, cm));
+			else if ((app.e.write_permission == 1) && (app.e.access_permission == 0))
+				fsn->attachObject(cube(false, cm));
+			else if ((app.e.write_permission == 0) && (app.e.access_permission == 1))
+				fsn->attachObject(cylinder(cm));
+			else
+				fsn -> attachObject(pyramid(cm));
+
 			fsn->setPosition(y * cos(theta), 0, y * sin(theta));
-			fsn->scale(.09,.09,.09);
+			fsn->scale(.09,((float) app.e.size / 20000000 + 0.1),.09);
 			OutputDebugString(str2);
 			OutputDebugString("\n");
 		}
@@ -507,33 +590,59 @@ void DigitalForensicsVisualisation::createScene(void)
 
 	}
 		
-	
 
-	count = 0;
 	const char* dir = "C:/";
 	//scan(dir);
 
 
-	
+	//mRenderer = &CEGUI::OgreRenderer::bootstrapSystem();
+
+	//CEGUI::ImageManager::setImagesetDefaultResourceGroup("Imagesets");
+	//CEGUI::Font::setDefaultResourceGroup("Fonts");
+	//CEGUI::Scheme::setDefaultResourceGroup("Schemes");
+	//CEGUI::WidgetLookManager::setDefaultResourceGroup("LookNFeel");
+	//CEGUI::WindowManager::setDefaultResourceGroup("Layouts");	
+
+	//CEGUI::SchemeManager::getSingleton().createFromFile("TaharezLook.scheme");
+	//CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().setDefaultImage("TaharezLook/MouseArrow");
 
 
-	char* dummy = (char*) malloc (64);
-	sprintf(dummy,"%d",count);
-	OutputDebugString(dummy);
+	//CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
+	//CEGUI::Window *sheet = wmgr.createWindow("DefaultWindow", "CEGUIDemo/Sheet");
+	//CEGUI::Window *quit = wmgr.createWindow("TaharezLook/Button", "CEGUIDemo/QuitButton");
+	//quit->setText("Quit");
+	//quit->setSize(CEGUI::USize(CEGUI::UDim(0.15, 0), CEGUI::UDim(0.05, 0)));
+	//quit->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&DigitalForensicsVisualisation::quit, this));
+	//sheet->addChild(quit);
+	//CEGUI::System::getSingleton().getDefaultGUIContext().setRootWindow(sheet);
+
+	//char* dummy = (char*) malloc (64);
+	//sprintf(dummy,"%d",count);
+	//OutputDebugString(dummy);
 	free (query);
 	mysql_close(mysqlPtr); 
+
 }
+
+
+////-------------------------------------------------------------------------------------
+//bool DigitalForensicsVisualisation::quit(const CEGUI::EventArgs &e)
+//{
+//    mShutDown = true;
+//	return true;
+//}
 
 //-------------------------------------------------------------------------------------
 void DigitalForensicsVisualisation::createViewports(void)
 {
 	    // Create one viewport, entire window
     Ogre::Viewport* vp = mWindow->addViewport(mCamera);
-    vp->setBackgroundColour(Ogre::ColourValue(.2,.1,.3));
+    vp->setBackgroundColour(Ogre::ColourValue(.0,.0,.0));
     // Alter the camera aspect ratio to match the viewport
-	mCamera->setFarClipDistance(1000);
+	//mCamera->setFarClipDistance(1000);
 	
 	mCamera->setAspectRatio(Ogre::Real(vp->getActualWidth()) / Ogre::Real(vp->getActualHeight()));  
+
 }
  
 
@@ -542,7 +651,8 @@ void DigitalForensicsVisualisation::createViewports(void)
 
 bool DigitalForensicsVisualisation::processUnbufferedInput(const Ogre::FrameEvent& evt)
 {
-
+	
+	pointLight->setPosition(mCamera->getPosition());
 
 	//leap
 	static Frame frame;

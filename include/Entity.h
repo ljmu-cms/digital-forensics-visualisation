@@ -1,14 +1,81 @@
 #include <iostream>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 
 typedef struct Date
 {
 	unsigned short year,month,day;
-	unsigned int date;
+	unsigned long date;
 }; 
 
+class ColorMap
+{
 
+public:
+
+	std::string extension;
+	float r,g,b;
+
+	ColorMap();
+	ColorMap(std::string e);
+
+	bool operator < (ColorMap c)
+	{
+		return toInt(this->extension) < toInt(c.extension);
+	}
+	bool operator > (ColorMap c)
+	{
+		return toInt(this->extension) > toInt(c.extension);
+	}
+	bool operator <= (ColorMap c)
+	{
+		return toInt(this->extension) <= toInt(c.extension);
+	}
+	bool operator >= (ColorMap c)
+	{
+		return toInt(this->extension) >= toInt(c.extension);
+	}
+	bool operator == (ColorMap c)
+	{
+		return toInt(this->extension) == toInt(c.extension);
+	}
+	bool operator != (ColorMap c)
+	{
+		return toInt(this->extension) != toInt(c.extension);
+	}
+
+	int toInt(std::string s)
+	{
+		int dec = 0;
+		for(int i=0; i<s.length(); i++)
+			dec = dec * 10 + ( s[i] - '0' );
+		return dec;
+	}
+};
+
+ColorMap::ColorMap()
+{
+	r = g = b = 1;
+	extension = "";
+
+}
+
+ColorMap::ColorMap(std::string e)
+{
+	int ir = rand();
+	int ig = rand();
+	int ib = rand();
+
+	ir = ir % 45 + 20;
+	ig = ig % 45 + 20;
+	ib = ib % 45 + 20;
+	r = (float) ir / 100;
+	g = (float) ig / 100;
+	b = (float) ib / 100;
+
+	extension = e;
+}
 
 
 class Entity
@@ -23,22 +90,23 @@ public:
 	const char* directory;
 	unsigned long size;
 	std::string extension;
-	unsigned short read_permission;
 	unsigned short write_permission;
-	unsigned short execute_permission;
+	unsigned short access_permission;
 	char* creation_time;
-	char* execution_time;
+	char* access_time;
 	char* modification_time;
+	unsigned long c, a, m;  //create, access, modification
 
 	//Methods
 
 	Entity();
 	~Entity();
-	int monthNumber (char*);
+	int monthNumber (std::string);
 	void setExtension();
 
-	void parseDate (Date &date, char* time)
+	unsigned long parseDate (char* time)
 	{
+		Date date;
 		char* value = (char*) malloc (strlen (time) +2 );
 		sprintf(value, "%s", time);
 		char* dummy;
@@ -53,24 +121,25 @@ public:
 
 		date.date = (date.year * 10000) + (date.month * 100) + date.day;
 		free (value);
+		return date.date;
 	}
 
 };
 
 
-int Entity::monthNumber (char* month)
+int Entity::monthNumber (std::string month)
 {
-	return (month == ("jan")) ? 1 : (month ==  ("feb")) ? 2 : (month == ("mar")) ? 3 : (month == ("apr")) ? 4 :
-		(month == ("may")) ? 5 : (month == ("jun")) ? 6 : (month == ("jul")) ? 7 : (month == ( "aug")) ? 8 :
-		(month == ("sep")) ? 9 : (month == ("oct")) ? 10 : (month == ("nov") ? 11 : 12);
+	return ((month == "Jan") ? 1 : (month ==  "Feb") ? 2 : (month == "Mar") ? 3 : (month == "Apr") ? 4 :
+		(month == "May") ? 5 : (month == "Jun") ? 6 : (month == "Jul") ? 7 : (month == "Aug") ? 8 :
+		(month == "Sep") ? 9 : (month == "Oct") ? 10 : (month == "Nov") ? 11 : 12);
 }
 
 Entity::Entity()
 {
 
 
-	size = 0;
-	read_permission = write_permission = execute_permission = 0;
+	size = c = a = m = 0;
+	write_permission = access_permission = 0;
 
 }
 

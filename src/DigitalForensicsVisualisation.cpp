@@ -1,10 +1,10 @@
 #include "DigitalForensicsVisualisation.h"
 #include <sstream>
 #include <math.h>
+
 //mysql
 #include "mysql.h"
 #include "my_global.h"
-
 
 #define SERVER "localhost"
 #define USER "root"
@@ -20,17 +20,25 @@
 #define is_regular 0100000
 //end filesystem
 
+#include "MovableText.h"
+
+
 using std::cout;
 using std::endl;
 
+
+
+
+
 char* query;
-
-
-
-
 MYSQL *mysqlPtr; // Create a pointer to the MySQL instance
 
 DigitalForensicsVisualisation app;  // creating application object here!!
+
+
+
+
+
 
 void scan (const char* directory)
 {
@@ -325,6 +333,8 @@ Ogre::ManualObject* const DigitalForensicsVisualisation::cube (bool isFrustum, C
 
 	cube->end();
 	free (name);
+
+
 	return cube;
 
 
@@ -333,7 +343,10 @@ Ogre::ManualObject* const DigitalForensicsVisualisation::cube (bool isFrustum, C
 //-------------------------------------------------------------------------------------
 DigitalForensicsVisualisation::DigitalForensicsVisualisation(void)
 {
-	previousFramePitch = previousFrameYaw = previousFrameRoll = 0;
+
+	previousPosition.x = previousFrameYaw = previousFrameRoll = 0;
+	previousPosition.y = -300;
+	previousPosition.z = -500;
 	handOrientationFlag = false;
 	cubeCount = pyramidCount = cylinderCount = 0;
 
@@ -353,6 +366,9 @@ DigitalForensicsVisualisation::~DigitalForensicsVisualisation(void)
 //-------------------------------------------------------------------------------------
 void DigitalForensicsVisualisation::createScene(void)
 {
+
+	
+
 	query = (char*) malloc (4096);
 	
 	//MYSQL *connect; // Create a pointer to the MySQL instance
@@ -396,8 +412,9 @@ void DigitalForensicsVisualisation::createScene(void)
 	//hand
 	handNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("HandNode");
 	handNode->setPosition (0, -300, -500);
+	
 	// palm
-	Ogre::Entity* palm = mSceneMgr->createEntity("palm","cube.mesh");
+	Ogre::Entity* palm = mSceneMgr->createEntity("sphere","cube.mesh");
 	palmNode = handNode->createChildSceneNode("PalmNode");
 	
 	palmNode->attachObject(palm);
@@ -414,7 +431,7 @@ void DigitalForensicsVisualisation::createScene(void)
 	for (int i = 0; i < 20; ++i)
 	{
 		sprintf(str, "%d", i);
-		bone = mSceneMgr->createEntity(str,"cube.mesh");
+		bone = mSceneMgr->createEntity(str,"sphere.mesh");
 		bonesArr[i] = fingersNode->createChildSceneNode(str);
 		bonesArr[i]->attachObject(bone);
 		bonesArr[i]->scale(.1,.1,.1);
@@ -441,7 +458,7 @@ void DigitalForensicsVisualisation::createScene(void)
 	unsigned int index = 0;
 
 
-
+#pragma region surface
 	//	Ogre::ManualObject* Circle = mSceneMgr->createManualObject("Circle");
 	//Ogre::SceneNode* CircleNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("CircleNode");
 
@@ -495,7 +512,7 @@ void DigitalForensicsVisualisation::createScene(void)
 	//CircleNode->attachObject(Circle);
 	//CircleNode->setPosition (0,-400,-500);
 
-
+#pragma endregion surface
 
 	MYSQL_RES *res_set; /* Create a pointer to recieve the return value.*/
     MYSQL_ROW row;  /* Assign variable for rows. */
@@ -520,11 +537,15 @@ void DigitalForensicsVisualisation::createScene(void)
 	//free (debug);
 
 
+	
 
 
 	float distFromCentre = radius - thickness;
 	int itemIndex = 0;
-	char str2[50];
+	char containerName[50]; //for container
+	char fileName[50]; //for fileName
+	char fontName[50]; //for fontName
+
 	filesNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("FilesNode");
 	filesNode->setPosition (0, -300, -500);
 
@@ -554,10 +575,16 @@ void DigitalForensicsVisualisation::createScene(void)
 			app.e.a = std::stoi(row[10]);
 			app.e.m = std::stoi(row[11]);
 
+			sprintf(containerName,"container_%d",itemIndex);
+			sprintf(fontName,"font_%d", itemIndex);
+			sprintf(fileName, "file_%d", itemIndex++);
 
-			sprintf(str2, "file%d", itemIndex++);
-			Ogre::SceneNode* fsn = filesNode->createChildSceneNode(str2);
+			Ogre::SceneNode* container = filesNode->createChildSceneNode(containerName);
+			Ogre::SceneNode* fsn = container->createChildSceneNode(fileName);
+			Ogre::SceneNode* fontNode = container->createChildSceneNode(fontName);
+
 			
+
 			ColorMap cm(app.e.extension);
 			
 
@@ -576,13 +603,31 @@ void DigitalForensicsVisualisation::createScene(void)
 			else if ((app.e.write_permission == 1) && (app.e.access_permission == 0))
 				fsn->attachObject(cube(false, cm));
 			else if ((app.e.write_permission == 0) && (app.e.access_permission == 1))
-				fsn->attachObject(cylinder(cm));
-			else
 				fsn -> attachObject(pyramid(cm));
+			else
+				fsn->attachObject(cylinder(cm));
 
+			std::stringstream ss;
+			ss << "file name: " << app.e.name << "\n\nlast access time: " << app.e.access_time << "\nmodification time: " 
+				<< app.e.modification_time << "\ncreation time: " << app.e.creation_time;
+			std::string s = ss.str();
+			
+			Ogre::MovableText* msg = new Ogre::MovableText("tayyar", (s));
+			msg->setTextAlignment(Ogre::MovableText::H_CENTER, Ogre::MovableText::V_CENTER); // Center horizontally and display above the node	
+			
+			fontNode->attachObject(msg);
+
+
+			
 			fsn->setPosition(y * cos(theta), 0, y * sin(theta));
+			fontNode->setPosition(fsn->getPosition().x + 6, fsn->getPosition().y, fsn->getPosition().z + 3.75);
+			
+
 			fsn->scale(.09,((float) app.e.size / 20000000 + 0.1),.09);
-			OutputDebugString(str2);
+
+		
+
+			OutputDebugString(fileName);
 			OutputDebugString("\n");
 		}
 
@@ -591,30 +636,31 @@ void DigitalForensicsVisualisation::createScene(void)
 	}
 		
 
-	const char* dir = "C:/";
+	//const char* dir = "C:/";
 	//scan(dir);
 
 
-	//mRenderer = &CEGUI::OgreRenderer::bootstrapSystem();
+	mRenderer = &CEGUI::OgreRenderer::bootstrapSystem();
 
-	//CEGUI::ImageManager::setImagesetDefaultResourceGroup("Imagesets");
-	//CEGUI::Font::setDefaultResourceGroup("Fonts");
-	//CEGUI::Scheme::setDefaultResourceGroup("Schemes");
-	//CEGUI::WidgetLookManager::setDefaultResourceGroup("LookNFeel");
-	//CEGUI::WindowManager::setDefaultResourceGroup("Layouts");	
+	CEGUI::ImageManager::setImagesetDefaultResourceGroup("Imagesets");
+	CEGUI::Font::setDefaultResourceGroup("Fonts");
+	CEGUI::Scheme::setDefaultResourceGroup("Schemes");
+	CEGUI::WidgetLookManager::setDefaultResourceGroup("LookNFeel");
+	CEGUI::WindowManager::setDefaultResourceGroup("Layouts");	
 
-	//CEGUI::SchemeManager::getSingleton().createFromFile("TaharezLook.scheme");
-	//CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().setDefaultImage("TaharezLook/MouseArrow");
+	CEGUI::SchemeManager::getSingleton().createFromFile("TaharezLook.scheme");
+	CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().setDefaultImage("TaharezLook/MouseArrow");
+	//CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().setImage( CEGUI::System::getSingleton().getDefaultMouseCursor());
+	CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().setVisible( true );
 
-
-	//CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
-	//CEGUI::Window *sheet = wmgr.createWindow("DefaultWindow", "CEGUIDemo/Sheet");
-	//CEGUI::Window *quit = wmgr.createWindow("TaharezLook/Button", "CEGUIDemo/QuitButton");
-	//quit->setText("Quit");
-	//quit->setSize(CEGUI::USize(CEGUI::UDim(0.15, 0), CEGUI::UDim(0.05, 0)));
-	//quit->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&DigitalForensicsVisualisation::quit, this));
-	//sheet->addChild(quit);
-	//CEGUI::System::getSingleton().getDefaultGUIContext().setRootWindow(sheet);
+	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
+	CEGUI::Window *sheet = wmgr.createWindow("DefaultWindow", "CEGUIDemo/Sheet");
+	CEGUI::Window *quit = wmgr.createWindow("TaharezLook/Button", "CEGUIDemo/QuitButton");
+	quit->setText("Quit");
+	quit->setSize(CEGUI::USize(CEGUI::UDim(0.15, 0), CEGUI::UDim(0.05, 0)));
+	quit->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&DigitalForensicsVisualisation::quit, this));
+	sheet->addChild(quit);
+	CEGUI::System::getSingleton().getDefaultGUIContext().setRootWindow(sheet);
 
 	//char* dummy = (char*) malloc (64);
 	//sprintf(dummy,"%d",count);
@@ -622,15 +668,19 @@ void DigitalForensicsVisualisation::createScene(void)
 	free (query);
 	mysql_close(mysqlPtr); 
 
+	handNode->setVisible(false);
 }
 
 
 ////-------------------------------------------------------------------------------------
-//bool DigitalForensicsVisualisation::quit(const CEGUI::EventArgs &e)
-//{
-//    mShutDown = true;
-//	return true;
-//}
+bool DigitalForensicsVisualisation::quit(const CEGUI::EventArgs &e)
+{
+    
+	OutputDebugString("n\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\n");
+	mShutDown = true;
+	
+	return true;
+}
 
 //-------------------------------------------------------------------------------------
 void DigitalForensicsVisualisation::createViewports(void)
@@ -639,7 +689,7 @@ void DigitalForensicsVisualisation::createViewports(void)
     Ogre::Viewport* vp = mWindow->addViewport(mCamera);
     vp->setBackgroundColour(Ogre::ColourValue(.0,.0,.0));
     // Alter the camera aspect ratio to match the viewport
-	//mCamera->setFarClipDistance(1000);
+	mCamera->setFarClipDistance(1500);
 	
 	mCamera->setAspectRatio(Ogre::Real(vp->getActualWidth()) / Ogre::Real(vp->getActualHeight()));  
 
@@ -662,18 +712,13 @@ bool DigitalForensicsVisualisation::processUnbufferedInput(const Ogre::FrameEven
 	
 	Leap::Hand rightMost = frame.hands().rightmost();
 
-		
-		
-	previousFramePitch = rightMost.direction().pitch() * RAD_TO_DEG;
-	previousFrameYaw = rightMost.direction().yaw() * RAD_TO_DEG;
-	previousFrameRoll = rightMost.palmNormal().roll() * RAD_TO_DEG;
-
+	
 	
 	
 	
 	if (!frame.hands().isEmpty() && !handOrientationFlag) 
 	{
-		
+			
 		palmNode->resetOrientation();
 		handOrientationFlag = true;	
 	}
@@ -685,30 +730,60 @@ bool DigitalForensicsVisualisation::processUnbufferedInput(const Ogre::FrameEven
 	if (!frame.hands().isEmpty())
 	{
 		
+		
 
 		Leap::Hand rightMost = frame.hands().rightmost();
-		palmNode->setPosition(rightMost.palmPosition().x, rightMost.palmPosition().y, rightMost.palmPosition().z); // between 100 and 250
 		
+		float pitchValue = rightMost.direction().pitch() * RAD_TO_DEG;
+		float rollValue = rightMost.palmNormal().roll() * RAD_TO_DEG;
+		float yawValue = rightMost.direction().yaw() * RAD_TO_DEG;
+
+		// to detect open and closed hand
+		Ogre::Vector3 indexTip = toVector(rightMost.fingers()[1].tipPosition());
+		Ogre::Vector3 pinkyTip = toVector(rightMost.fingers()[3].tipPosition());
+
+	
+		float angle = std::abs(indexTip.x - pinkyTip.x);
+		angle /= rightMost.fingers()[1].length(); // to normalise 
+
+		if (rightMost.grabStrength() == 1)
+		{
+			char* dummy = (char*) malloc(8);
+			sprintf (dummy, "%f\n", rightMost.grabStrength()); 
+			OutputDebugString(dummy);
+			mCamera->pitch((Ogre::Radian) (rightMost.palmPosition().y - previousPosition.y) / 80);
+			//mCamera->yaw((Ogre::Radian) (rightMost.palmPosition().x - previousPosition.x) / -80);
+			//mCamera->roll((Ogre::Radian) (rollValue - previousFrameRoll) / 30);
+			
+		}
+		else if (angle > 0.8)
+		{
+			
+			palmNode->setPosition(toVector(frame.hands().rightmost().palmPosition())); // between 100 and 250	
+			mCamera->setPosition(mCamera->getPosition() + (palmNode->getPosition() - previousPosition)*2 );
+			
+			
+		}
+		//else
+		//{
+		//	mCamera->yaw((Ogre::Radian) (yawValue - previousFrameYaw) / -10);
+		//}
+
+		previousPosition = toVector(frame.hands().rightmost().palmPosition());
 		
 
-		float pitchValue = rightMost.direction().pitch() * RAD_TO_DEG;
+
 		palmNode->pitch((Ogre::Radian) (pitchValue - previousFramePitch) );
 
-		float rollValue = rightMost.palmNormal().roll() * RAD_TO_DEG;
+		
 		palmNode->roll((Ogre::Radian) (rollValue - previousFrameRoll) );
 
-		float yawValue = rightMost.direction().yaw() * RAD_TO_DEG;
+		
 		palmNode->yaw((Ogre::Radian) (yawValue - previousFrameYaw) );
 
-		/*char* dummy = (char*) malloc(64);
-		sprintf (dummy, "pitch: %f, yaw: %f, roll: %f\n", pitchValue, yawValue, rollValue); 
-		OutputDebugString (dummy);
-		free(dummy);*/
- 
 		previousFramePitch = rightMost.direction().pitch() * RAD_TO_DEG;
 		previousFrameYaw = rightMost.direction().yaw() * RAD_TO_DEG;
 		previousFrameRoll = rightMost.palmNormal().roll() * RAD_TO_DEG;
-
 
 		// Get fingers
 		static FingerList fingers; 
@@ -746,16 +821,16 @@ bool DigitalForensicsVisualisation::processUnbufferedInput(const Ogre::FrameEven
 
 
 		// to detect open and closed hand
-		Ogre::Vector3 indexTip = toVector(rightMost.fingers()[1].tipPosition());
-		Ogre::Vector3 pinkyTip = toVector(rightMost.fingers()[3].tipPosition());
+		//Ogre::Vector3 indexTip = toVector(rightMost.fingers()[1].tipPosition());
+		//Ogre::Vector3 pinkyTip = toVector(rightMost.fingers()[3].tipPosition());
 
 	
-		float angle = std::abs(indexTip.x - pinkyTip.x);
-		angle /= rightMost.fingers()[1].length(); // to normalise 
-		
-		char* dummy = (char*) malloc(8);
-		sprintf (dummy, "%f\n", angle); 
-		OutputDebugString(dummy);
+		//float angle = std::abs(indexTip.x - pinkyTip.x);
+		//angle /= rightMost.fingers()[1].length(); // to normalise 
+		//
+		//char* dummy = (char*) malloc(8);
+		//sprintf (dummy, "%f\n", angle); 
+		//OutputDebugString(dummy);
 	}
 
 

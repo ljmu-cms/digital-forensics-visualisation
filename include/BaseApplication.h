@@ -1,6 +1,10 @@
 #ifndef __BaseApplication_h_
 #define __BaseApplication_h_
 
+
+#include <CEGUI/CEGUI.h>
+#include <CEGUI/RendererModules/Ogre/Renderer.h>
+
 #include <OgreCamera.h>
 #include <OgreEntity.h>
 #include <OgreLogManager.h>
@@ -25,7 +29,6 @@ public:
     virtual ~BaseApplication(void);
 
     virtual void go(void);
-
 protected:
     virtual bool setup();
     virtual bool configure(void);
@@ -64,7 +67,7 @@ protected:
     Ogre::String mPluginsCfg;
 
     // OgreBites
-    OgreBites::SdkTrayManager* mTrayMgr;
+    //OgreBites::SdkTrayManager* mTrayMgr;
     OgreBites::SdkCameraMan* mCameraMan;     // basic camera controller
     OgreBites::ParamsPanel* mDetailsPanel;   // sample details panel
     bool mCursorWasVisible;                  // was cursor visible before dialog appeared

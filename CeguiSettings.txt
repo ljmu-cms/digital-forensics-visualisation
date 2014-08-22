@@ -1,0 +1,32 @@
+
+1) Add include directory for both 
+"C:\cegui-0.8.4\cegui\include" and "C:\cegui-0.8.4\build\cegui\include"
+
+2) Add cegui libraries and cegui dependency libraries
+"C:\cegui-0.8.4\build\lib" and "C:\cegui-0.8.4\dependencies\lib\dynamic"
+
+3) Add 
+CEGUIBase-0.lib and CEGUIOgreRenderer-0.lib dlls to linker->input
+
+4) Copy following dlls to location of executable
+
+CEGUIBase-0.dll
+CEGUIOgreRenderer-0.dll
+expat.dll
+freetype.dll
+pcre.dll
+
+5) Add the following lines to ogre resource.cfg file (located in ogresdk/bin/debug or ogresdk/bin/release)
+
+[Imagesets]
+FileSystem=C:/cegui-0.8.4/datafiles/imagesets
+[Fonts]
+FileSystem=C:/cegui-0.8.4/datafiles/fonts
+[Schemes]
+FileSystem=C:/cegui-0.8.4/datafiles/schemes
+[LookNFeel]
+FileSystem=C:/cegui-0.8.4/datafiles/looknfeel
+[Layouts]
+FileSystem=C:/cegui-0.8.4/datafiles/layouts
+
+

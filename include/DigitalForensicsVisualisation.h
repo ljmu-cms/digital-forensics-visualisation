@@ -2,8 +2,7 @@
 #define __DigitalForensicsVisualisation_h_
 
 
-//#include <CEGUI/CEGUI.h>
-//#include <CEGUI/RendererModules/Ogre/Renderer.h>
+
 
 #include "BaseApplication.h"
 #include "SampleListener.h"
@@ -13,6 +12,7 @@
 #include <Terrain/OgreTerrain.h>
 #include <Terrain/OgreTerrainGroup.h>
 #include "Entity.h"
+#include "ColorMap.h"
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
 #include "../res/resource.h"
 #endif
@@ -32,6 +32,7 @@ private:
 	Ogre::SceneNode *palmNode;
 	Ogre::SceneNode* fingersNode;
 	Ogre::SceneNode* filesNode;
+	Ogre::Vector3 previousPosition;
 	float previousFramePitch;
 	float previousFrameYaw;
 	float previousFrameRoll;
@@ -65,7 +66,7 @@ protected:
 
 
 
-//	    CEGUI::OgreRenderer* mRenderer;
+	    CEGUI::OgreRenderer* mRenderer;
  
    
 	//virtual void createFrameListener(void);
@@ -82,7 +83,7 @@ protected:
     //virtual bool mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id );
     //virtual bool mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id );
  
-//    bool quit(const CEGUI::EventArgs &e);
+    bool quit(const CEGUI::EventArgs &e);
 
 	
 };

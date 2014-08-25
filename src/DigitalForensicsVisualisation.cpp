@@ -30,7 +30,6 @@ using std::endl;
 
 
 
-char* query;
 MYSQL *mysqlPtr; // Create a pointer to the MySQL instance
 
 DigitalForensicsVisualisation app;  // creating application object here!!
@@ -38,7 +37,44 @@ DigitalForensicsVisualisation app;  // creating application object here!!
 
 
 
+void mysqlConn ()
+{
+	
+    mysqlPtr = mysql_init(NULL); // Initialise the instance
+    /* This If is irrelevant and you don't need to show it. I kept it in for Fault Testing.*/
+    if(!mysqlPtr)    /* If instance didn't initialize say so and exit with fault.*/
+    {
+        fprintf(stderr,"MySQL Initialization Failed");
+        
+    }
+    /* Now we will actually connect to the specific database.*/
+ 
+    mysqlPtr=mysql_real_connect(mysqlPtr,SERVER,USER,PASSWORD,DATABASE,0,NULL,0);
+ 
+    //if(mysqlPtr){
+    //    printf("Connection Succeeded\n");
+    //}
+    //else{
+    //    printf("Connection Failed!\n");
+    //}
 
+    
+}
+
+MYSQL_RES* mysqlExecute(const char* query)
+{
+	//mysql_query(mysqlPtr, "INSERT INTO `test`.`table1` (`a`, `b`, `c`) VALUES ('5', 't', 'y');");
+	mysql_query(mysqlPtr,query);
+
+    return mysql_store_result(mysqlPtr); /* Receive the result and store it in res_set */
+ 
+}
+
+
+void mysqlDisconnect()
+{
+	mysql_close(mysqlPtr);
+}
 
 void scan (const char* directory)
 {
@@ -220,16 +256,36 @@ Ogre::ManualObject* const DigitalForensicsVisualisation::pyramid(ColorMap cm)
 	normal.normalise();
 	pyramid->normal(normal);
 
-	pyramid->position(50,100,50);// 3
+	pyramid->position(0,100,0);  // 3
 	pyramid->colour(cv);
-	normal.x = normal.z = 0; normal.z = 50; 
+	normal.x = normal.z = -50;
+	normal.y = 50;
 	normal.normalise();
 	pyramid->normal(normal);
 
-	pyramid->triangle(0,1,2); //
-	pyramid->triangle(3,1,0); 
-	pyramid->triangle(3,2,1); 
-	pyramid->triangle(0,2,3); //
+	pyramid->position(100,100,0);  // 4
+	pyramid->colour(cv);
+	normal.x = normal.y = 50; normal.z = -50; 
+	normal.normalise();
+	pyramid->normal(normal);
+
+	pyramid->position(50,100,100); // 5
+	pyramid->colour(cv);
+	normal.x = 0; normal.y = normal.z = 50;
+	normal.normalise();
+	pyramid->normal(normal);
+
+	pyramid->triangle(0,1,2);
+	pyramid->triangle(5,4,3);
+	
+	pyramid->triangle(3,1,0);
+	pyramid->triangle(1,3,4);
+
+	pyramid->triangle(0,2,3);
+	pyramid->triangle(5,3,2);
+
+	pyramid->triangle(4,2,1);
+	pyramid->triangle(2,4,5);
 
 	
 
@@ -366,36 +422,9 @@ DigitalForensicsVisualisation::~DigitalForensicsVisualisation(void)
 //-------------------------------------------------------------------------------------
 void DigitalForensicsVisualisation::createScene(void)
 {
+	// to establish mysql connection
+	mysqlConn();
 
-	
-
-	query = (char*) malloc (4096);
-	
-	//MYSQL *connect; // Create a pointer to the MySQL instance
-    mysqlPtr = mysql_init(NULL); // Initialise the instance
-    /* This If is irrelevant and you don't need to show it. I kept it in for Fault Testing.*/
-    if(!mysqlPtr)    /* If instance didn't initialize say so and exit with fault.*/
-    {
-        fprintf(stderr,"MySQL Initialization Failed");
-        
-    }
-    /* Now we will actually connect to the specific database.*/
- 
-    mysqlPtr=mysql_real_connect(mysqlPtr,SERVER,USER,PASSWORD,DATABASE,0,NULL,0);
-    /* Following if statements are unneeded too, but it's worth it to show on your
-    first app, so that if your database is empty or the query didn't return anything it
-    will at least let you know that the connection to the mysql server was established. */
- 
-    //if(mysqlPtr){
-    //    printf("Connection Succeeded\n");
-    //}
-    //else{
-    //    printf("Connection Failed!\n");
-    //}
-
-    
-
-	//mysql_close(mysqlPtr);   /* Close and shutdown */
 
 #pragma region objects
 
@@ -516,29 +545,11 @@ void DigitalForensicsVisualisation::createScene(void)
 
 	MYSQL_RES *res_set; /* Create a pointer to recieve the return value.*/
     MYSQL_ROW row;  /* Assign variable for rows. */
-    //mysql_query(mysqlPtr, "INSERT INTO `test`.`table1` (`a`, `b`, `c`) VALUES ('5', 't', 'y');");
-	mysql_query(mysqlPtr,"SELECT * FROM file");
-
-    /* Send a query to the database. */
-    unsigned int i = 0; /* Create a counter for the rows */
  
-    res_set = mysql_store_result(mysqlPtr); /* Receive the result and store it in res_set */
  
+	res_set = mysqlExecute("SELECT * FROM file where directory like 'C:/mdk%';");
     unsigned int numrows = mysql_num_rows(res_set); /* Create the count to print all rows */
  
-    /* This while is to print all rows and not just the first row found, */
-	//char* debug = (char*) malloc (32);
- //   while ((row = mysql_fetch_row(res_set)) != NULL){
- //       sprintf(debug, "!!%s!!%s!!%s\n",row[i+1] != NULL ?
-	//		row[i+1] : "NULL", row[i+2], row[i+3]);
-	//	OutputDebugString(debug);
-	//	/* Print the row data */
- //   }
-	//free (debug);
-
-
-	
-
 
 	float distFromCentre = radius - thickness;
 	int itemIndex = 0;
@@ -603,10 +614,16 @@ void DigitalForensicsVisualisation::createScene(void)
 			else if ((app.e.write_permission == 1) && (app.e.access_permission == 0))
 				fsn->attachObject(cube(false, cm));
 			else if ((app.e.write_permission == 0) && (app.e.access_permission == 1))
+			{
 				fsn -> attachObject(pyramid(cm));
-			else
-				fsn->attachObject(cylinder(cm));
+				fsn -> scale (1.3, 1.3, 1.3);
 
+			}
+			else
+			{
+				fsn->attachObject(cylinder(cm));
+				fsn->pitch((Ogre::Radian) Ogre::Math::PI);
+			}
 			std::stringstream ss;
 			ss << "file name: " << app.e.name << "\n\nlast access time: " << app.e.access_time << "\nmodification time: " 
 				<< app.e.modification_time << "\ncreation time: " << app.e.creation_time;
@@ -636,9 +653,9 @@ void DigitalForensicsVisualisation::createScene(void)
 	}
 		
 
-	//const char* dir = "C:/";
-	//scan(dir);
-
+	/*const char* dir = "C:/mdk";
+	scan(dir);
+*/
 
 	mRenderer = &CEGUI::OgreRenderer::bootstrapSystem();
 
@@ -665,10 +682,9 @@ void DigitalForensicsVisualisation::createScene(void)
 	//char* dummy = (char*) malloc (64);
 	//sprintf(dummy,"%d",count);
 	//OutputDebugString(dummy);
-	free (query);
-	mysql_close(mysqlPtr); 
+	mysqlDisconnect();
 
-	handNode->setVisible(false);
+	//handNode->setVisible(false);
 }
 
 

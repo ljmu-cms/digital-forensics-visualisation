@@ -432,12 +432,17 @@ bool BaseApplication::keyPressed( const OIS::KeyEvent &arg )
         mShutDown = true;
     }
 
+	CEGUI::System &sys = CEGUI::System::getSingleton();
+	sys.getDefaultGUIContext().injectKeyDown((CEGUI::Key::Scan) arg.key);
+	sys.getDefaultGUIContext().injectChar(arg.text);
     mCameraMan->injectKeyDown(arg);
     return true;
 }
 
 bool BaseApplication::keyReleased( const OIS::KeyEvent &arg )
 {
+	CEGUI::System &sys = CEGUI::System::getSingleton();
+	sys.getDefaultGUIContext().injectKeyUp((CEGUI::Key::Scan) arg.key);
     mCameraMan->injectKeyUp(arg);
     return true;
 }

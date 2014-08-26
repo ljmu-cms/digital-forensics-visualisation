@@ -58,9 +58,9 @@ ColorMap::ColorMap(std::string e)
 	int ir, ig, ib;
 	ig = ib = ir = toInt(e);
 
-	ir = (ir % 45) + 20;
-	ig = (ig % 43) + 20;
-	ib = (ib % 44) + 20;
+	ir = (ir % 45) + 25;
+	ig = (ig % 43) + 25;
+	ib = (ib % 44) + 25;
 	r = (float) ir / 100;
 	g = (float) ig / 100;
 	b = (float) ib / 100;

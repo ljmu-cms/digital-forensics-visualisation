@@ -8,7 +8,7 @@
 
 #define SERVER "localhost"
 #define USER "root"
-#define PASSWORD "081293"
+#define PASSWORD ""
 #define DATABASE "test"
 //end mysql
 
@@ -25,7 +25,6 @@
 
 using std::cout;
 using std::endl;
-
 
 
 
@@ -179,31 +178,31 @@ Ogre::ManualObject* const DigitalForensicsVisualisation::cylinder(ColorMap cm)
 	unsigned int index = 2;
 	
 	
-	cylinder->position(0,0,0);
+	cylinder->position(50,0,-50);
 	cylinder->colour(cv);
-	cylinder->normal(0,90,0);
+	cylinder->normal(50,90,-50);
 
-	cylinder->position(0,-90,0);
+	cylinder->position(50,-90,-50);
 	cylinder->colour(cv);
-	cylinder->normal(0,-91,0);
+	cylinder->normal(50,-91,-50);
 
 
 	for (float theta = 0; theta <= Ogre::Math::PI * 2; theta += Ogre::Math::PI / (accuracy)) 
 	{
 		// TL: top-left, BR: bottom-right
- /*TL*/ cylinder->position(radius * cos(theta), 0, radius * sin(theta));
+ /*TL*/ cylinder->position(radius * cos(theta) + 50, 0, radius * sin(theta) - 50);
 		cylinder->colour(cv); 
-		cylinder->normal(radius * cos(theta), 90, radius * sin(theta)); 
- /*TR*/ cylinder->position(radius * cos(theta - Ogre::Math::PI / accuracy), 0, radius * sin(theta - Ogre::Math::PI / accuracy));
+		cylinder->normal(radius * cos(theta) + 50, 90, radius * sin(theta) - 50); 
+ /*TR*/ cylinder->position(radius * cos(theta - Ogre::Math::PI / accuracy) + 50, 0, radius * sin(theta - Ogre::Math::PI / accuracy) - 50);
 		cylinder->colour(cv);
-		cylinder->normal(radius * cos(theta - Ogre::Math::PI / accuracy), 90, radius * sin(theta - Ogre::Math::PI / accuracy));
+		cylinder->normal(radius * cos(theta - Ogre::Math::PI / accuracy) + 50, 90, radius * sin(theta - Ogre::Math::PI / accuracy) - 50);
 	
- /*TL*/ cylinder->position(radius * cos(theta), -90, radius * sin(theta)); 
+ /*TL*/ cylinder->position(radius * cos(theta) + 50, -90, radius * sin(theta) - 50); 
 		cylinder->colour(cv);
-		cylinder->normal(radius * cos(theta), -91, radius * sin(theta)); 
- /*TR*/ cylinder->position(radius * cos(theta - Ogre::Math::PI / accuracy), -90, radius * sin(theta - Ogre::Math::PI / accuracy));
+		cylinder->normal(radius * cos(theta) + 50, -91, radius * sin(theta) - 50); 
+ /*TR*/ cylinder->position(radius * cos(theta - Ogre::Math::PI / accuracy) + 50, -90, radius * sin(theta - Ogre::Math::PI / accuracy) - 50);
 		cylinder->colour(cv);
-		cylinder->normal(radius * cos(theta - Ogre::Math::PI / accuracy), -91, radius * sin(theta - Ogre::Math::PI / accuracy));
+		cylinder->normal(radius * cos(theta - Ogre::Math::PI / accuracy) + 50, -91, radius * sin(theta - Ogre::Math::PI / accuracy) - 50);
 
 		
 		cylinder->triangle(index, index + 1, 0);
@@ -482,8 +481,8 @@ void DigitalForensicsVisualisation::createScene(void)
 
 
 	const float accuracy = 45;
-	const float radius = 1000;
-	const float thickness = 955;
+	const float radius = 100;
+	const float thickness = 55;
 	unsigned int index = 0;
 
 
@@ -547,7 +546,7 @@ void DigitalForensicsVisualisation::createScene(void)
     MYSQL_ROW row;  /* Assign variable for rows. */
  
  
-	res_set = mysqlExecute("SELECT * FROM file where directory like 'C:/mdk%';");
+	res_set = mysqlExecute("SELECT * FROM file where (a > 20130000) order by a ;");
     unsigned int numrows = mysql_num_rows(res_set); /* Create the count to print all rows */
  
 
@@ -576,7 +575,19 @@ void DigitalForensicsVisualisation::createScene(void)
 			app.e.name = row[0];
 			app.e.directory = row[1];
 			app.e.size = std::stoi(row[2]);
-			app.e.extension = row[3];
+
+			
+
+			std::string ext = row[3];
+			
+			for (int i = 0; i < ext.length(); ++i)
+			{
+				ext[i] = std::toupper(ext[i]);
+			}
+
+			app.e.extension = ext;
+			OutputDebugString(app.e.extension.c_str());
+
 			app.e.write_permission = std::stoi(row[4]);
 			app.e.access_permission = std::stoi(row[5]);
 			app.e.creation_time = row[6];
@@ -617,12 +628,14 @@ void DigitalForensicsVisualisation::createScene(void)
 			{
 				fsn -> attachObject(pyramid(cm));
 				fsn -> scale (1.3, 1.3, 1.3);
-
+				fsn ->setPosition(Ogre::Vector3(fsn->getPosition().x + 1,fsn->getPosition().y,fsn->getPosition().z + 1));
 			}
 			else
 			{
 				fsn->attachObject(cylinder(cm));
+				const Ogre::Vector3 pos =fsn->getPosition();
 				fsn->pitch((Ogre::Radian) Ogre::Math::PI);
+				fsn->setPosition(pos);
 			}
 			std::stringstream ss;
 			ss << "file name: " << app.e.name << "\n\nlast access time: " << app.e.access_time << "\nmodification time: " 
@@ -631,11 +644,10 @@ void DigitalForensicsVisualisation::createScene(void)
 			
 			Ogre::MovableText* msg = new Ogre::MovableText("tayyar", (s));
 			msg->setTextAlignment(Ogre::MovableText::H_CENTER, Ogre::MovableText::V_CENTER); // Center horizontally and display above the node	
-			
+			msg->setColor(Ogre::ColourValue(1,1,1,.65));
+
 			fontNode->attachObject(msg);
 
-
-			
 			fsn->setPosition(y * cos(theta), 0, y * sin(theta));
 			fontNode->setPosition(fsn->getPosition().x + 6, fsn->getPosition().y, fsn->getPosition().z + 3.75);
 			
@@ -646,16 +658,19 @@ void DigitalForensicsVisualisation::createScene(void)
 
 			OutputDebugString(fileName);
 			OutputDebugString("\n");
+			
 		}
 
 		distFromCentre += Ogre::Math::PI * 6;
-
+		
 	}
+
+	
 		
 
-	/*const char* dir = "C:/mdk";
-	scan(dir);
-*/
+	//const char* dir = "C:/";
+	//scan(dir);
+
 
 	mRenderer = &CEGUI::OgreRenderer::bootstrapSystem();
 
@@ -665,34 +680,111 @@ void DigitalForensicsVisualisation::createScene(void)
 	CEGUI::WidgetLookManager::setDefaultResourceGroup("LookNFeel");
 	CEGUI::WindowManager::setDefaultResourceGroup("Layouts");	
 
-	CEGUI::SchemeManager::getSingleton().createFromFile("TaharezLook.scheme");
-	CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().setDefaultImage("TaharezLook/MouseArrow");
-	//CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().setImage( CEGUI::System::getSingleton().getDefaultMouseCursor());
+	CEGUI::SchemeManager::getSingleton().createFromFile("AlfiskoSkin.scheme");
+	CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().setDefaultImage("AlfiskoSkin/MouseArrow");
 	CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().setVisible( true );
 
 	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
 	CEGUI::Window *sheet = wmgr.createWindow("DefaultWindow", "CEGUIDemo/Sheet");
-	CEGUI::Window *quit = wmgr.createWindow("TaharezLook/Button", "CEGUIDemo/QuitButton");
-	quit->setText("Quit");
-	quit->setSize(CEGUI::USize(CEGUI::UDim(0.15, 0), CEGUI::UDim(0.05, 0)));
-	quit->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&DigitalForensicsVisualisation::quit, this));
-	sheet->addChild(quit);
+	
+	
+	CEGUI::Tooltip* tt1 = static_cast<CEGUI::Tooltip*> (wmgr.createWindow("AlfiskoSkin/Label","tt1"));
+	tt1->setPosition(CEGUI::UVector2(CEGUI::UDim(-0.021,0),CEGUI::UDim(0.075,0)));
+	tt1->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	tt1->setText("Accessed files between:");
+	sheet->addChild(tt1);
+
+	CEGUI::Editbox* d1 = static_cast<CEGUI::Editbox*> (wmgr.createWindow("AlfiskoSkin/Editbox","eb1"));
+	d1->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.105,0)));
+	d1->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	d1->setText("02-04-2011");
+	sheet->addChild(d1);
+
+	CEGUI::Editbox* d2 = static_cast<CEGUI::Editbox*> (wmgr.createWindow("AlfiskoSkin/Editbox","eb2"));
+	d2->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.135,0)));
+	d2->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	d2->setText("08-12-2014");
+	sheet->addChild(d2);
+
+	CEGUI::Tooltip* tt2 = static_cast<CEGUI::Tooltip*> (wmgr.createWindow("AlfiskoSkin/Label","tt2"));
+	tt2->setPosition(CEGUI::UVector2(CEGUI::UDim(-0.071,0),CEGUI::UDim(0.170,0)));
+	tt2->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	tt2->setText("Sort files by:");
+	sheet->addChild(tt2);
+
+	CEGUI::RadioButton* rb1 = static_cast<CEGUI::RadioButton*> (wmgr.createWindow("AlfiskoSkin/RadioButton","rb1"));
+	rb1->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.2,0)));
+	rb1->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	rb1->setText("Last Access Date");
+	rb1->setGroupID(1);
+	rb1->setID(1);
+	rb1->setSelected(true);
+	rb1->setVisible(true);
+	sheet->addChild(rb1);
+
+	CEGUI::RadioButton* rb2 = static_cast<CEGUI::RadioButton*> (wmgr.createWindow("AlfiskoSkin/RadioButton","rb2"));
+	rb2->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.225,0)));
+	rb2->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	rb2->setText("Last Modification Date");
+	rb2->setGroupID(1);
+	rb2->setID(2);
+	rb2->setSelected(false);
+	rb2->setVisible(true);
+	sheet->addChild(rb2);
+
+	CEGUI::RadioButton* rb3 = static_cast<CEGUI::RadioButton*> (wmgr.createWindow("AlfiskoSkin/RadioButton","rb3"));
+	rb3->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.250,0)));
+	rb3->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	rb3->setText("Creation Date");
+	rb3->setGroupID(1);
+	rb3->setID(3);
+	rb3->setSelected(false);
+	rb3->setVisible(true);
+	sheet->addChild(rb3);
+
+	//toggle button 
+	CEGUI::ToggleButton* tb = static_cast<CEGUI::ToggleButton*> (wmgr.createWindow("AlfiskoSkin/Checkbox","toggle"));
+	tb->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.3,0)));
+	tb->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	tb->setText("Sort in descending order");
+	sheet->addChild(tb);
+
+	//visualise button
+	CEGUI::Window* visualise = wmgr.createWindow("AlfiskoSkin/Button", "visualise");
+	visualise->setText("Visualise!");
+	visualise->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.4,0)));
+	visualise->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.05, 0)));
+	visualise->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&DigitalForensicsVisualisation::visualise, this));
+	sheet->addChild(visualise);
+
+
+
+
 	CEGUI::System::getSingleton().getDefaultGUIContext().setRootWindow(sheet);
 
-	//char* dummy = (char*) malloc (64);
-	//sprintf(dummy,"%d",count);
-	//OutputDebugString(dummy);
+
 	mysqlDisconnect();
 
-	//handNode->setVisible(false);
+	handNode->setVisible(false);
+
+	
 }
 
+//---------------------------------------------------------------------------------------
+bool DigitalForensicsVisualisation::visualise(const CEGUI::EventArgs &e)
+{
+    
+	OutputDebugString("visualise!!!!");
+	
+	
+	return true;
+}
 
 ////-------------------------------------------------------------------------------------
 bool DigitalForensicsVisualisation::quit(const CEGUI::EventArgs &e)
 {
     
-	OutputDebugString("n\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\n");
+	
 	mShutDown = true;
 	
 	return true;

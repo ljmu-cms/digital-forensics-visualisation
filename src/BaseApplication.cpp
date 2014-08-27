@@ -6,7 +6,7 @@
 
 //convert OIS mouse buttons to CEGUI mouse buttons-------------------------------------
 
-CEGUI::MouseButton convertButton(OIS::MouseButtonID buttonID)
+CEGUI::MouseButton BaseApplication::convertButton(OIS::MouseButtonID buttonID)
 {
     switch (buttonID)
     {

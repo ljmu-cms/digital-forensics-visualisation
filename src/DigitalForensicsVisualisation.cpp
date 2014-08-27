@@ -8,7 +8,7 @@
 
 #define SERVER "localhost"
 #define USER "root"
-#define PASSWORD ""
+#define PASSWORD "081293"
 #define DATABASE "test"
 //end mysql
 
@@ -20,7 +20,7 @@
 #define is_regular 0100000
 //end filesystem
 
-#include "MovableText.h"
+
 
 
 using std::cout;
@@ -398,13 +398,14 @@ Ogre::ManualObject* const DigitalForensicsVisualisation::cube (bool isFrustum, C
 //-------------------------------------------------------------------------------------
 DigitalForensicsVisualisation::DigitalForensicsVisualisation(void)
 {
-
+	// to establish mysql connection
+	mysqlConn();
 	previousPosition.x = previousFrameYaw = previousFrameRoll = 0;
 	previousPosition.y = -300;
 	previousPosition.z = -500;
 	handOrientationFlag = false;
 	cubeCount = pyramidCount = cylinderCount = 0;
-
+	textArrIndex = 0;
 
 
 	
@@ -415,17 +416,17 @@ DigitalForensicsVisualisation::DigitalForensicsVisualisation(void)
 //-------------------------------------------------------------------------------------
 DigitalForensicsVisualisation::~DigitalForensicsVisualisation(void)
 {
-	
+	mysqlDisconnect();
 }
 
 //-------------------------------------------------------------------------------------
 void DigitalForensicsVisualisation::createScene(void)
 {
-	// to establish mysql connection
-	mysqlConn();
+	
 
 
 #pragma region objects
+
 
 	// leap controller and listener objects
 	leapController.addListener(leapSampleListener);
@@ -476,14 +477,12 @@ void DigitalForensicsVisualisation::createScene(void)
     pointLight->setDiffuseColour(Ogre::ColourValue::White);
     pointLight->setSpecularColour(Ogre::ColourValue::White);
 	
+	handNode->setVisible(false);
 	
 #pragma endregion objects
 
 
-	const float accuracy = 45;
-	const float radius = 100;
-	const float thickness = 55;
-	unsigned int index = 0;
+	
 
 
 #pragma region surface
@@ -542,135 +541,11 @@ void DigitalForensicsVisualisation::createScene(void)
 
 #pragma endregion surface
 
-	MYSQL_RES *res_set; /* Create a pointer to recieve the return value.*/
-    MYSQL_ROW row;  /* Assign variable for rows. */
- 
- 
-	res_set = mysqlExecute("SELECT * FROM file where (a > 20130000) order by a ;");
-    unsigned int numrows = mysql_num_rows(res_set); /* Create the count to print all rows */
- 
-
-	float distFromCentre = radius - thickness;
-	int itemIndex = 0;
-	char containerName[50]; //for container
-	char fileName[50]; //for fileName
-	char fontName[50]; //for fontName
-
-	filesNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("FilesNode");
-	filesNode->setPosition (0, -300, -500);
-
-	srand(time(NULL));
-
-	for (float y = radius - thickness; y <= radius; y += Ogre::Math::PI * 6)
-	{
-
-
-		for (float theta = 0; theta <= Ogre::Math::PI * 1.8; theta += Ogre::Math::PI / (distFromCentre / 6)) 
-		{
-			if ((row = mysql_fetch_row(res_set)) == NULL)
-				break;
-
-			
-			
-			app.e.name = row[0];
-			app.e.directory = row[1];
-			app.e.size = std::stoi(row[2]);
-
-			
-
-			std::string ext = row[3];
-			
-			for (int i = 0; i < ext.length(); ++i)
-			{
-				ext[i] = std::toupper(ext[i]);
-			}
-
-			app.e.extension = ext;
-			OutputDebugString(app.e.extension.c_str());
-
-			app.e.write_permission = std::stoi(row[4]);
-			app.e.access_permission = std::stoi(row[5]);
-			app.e.creation_time = row[6];
-			app.e.access_time = row[7];
-			app.e.modification_time = row[8];
-			app.e.c = std::stoi(row[9]);
-			app.e.a = std::stoi(row[10]);
-			app.e.m = std::stoi(row[11]);
-
-			sprintf(containerName,"container_%d",itemIndex);
-			sprintf(fontName,"font_%d", itemIndex);
-			sprintf(fileName, "file_%d", itemIndex++);
-
-			Ogre::SceneNode* container = filesNode->createChildSceneNode(containerName);
-			Ogre::SceneNode* fsn = container->createChildSceneNode(fileName);
-			Ogre::SceneNode* fontNode = container->createChildSceneNode(fontName);
-
-			
-
-			ColorMap cm(app.e.extension);
-			
-
-			if (colorTree.search(cm) == NULL)
-				colorTree.insert(cm);
-			else
-				cm = colorTree.search(cm)->data;
-				
-
-		
-
-			
-
-			if ((app.e.write_permission == 1) && (app.e.access_permission == 1))
-				fsn ->attachObject(cube(true, cm));
-			else if ((app.e.write_permission == 1) && (app.e.access_permission == 0))
-				fsn->attachObject(cube(false, cm));
-			else if ((app.e.write_permission == 0) && (app.e.access_permission == 1))
-			{
-				fsn -> attachObject(pyramid(cm));
-				fsn -> scale (1.3, 1.3, 1.3);
-				fsn ->setPosition(Ogre::Vector3(fsn->getPosition().x + 1,fsn->getPosition().y,fsn->getPosition().z + 1));
-			}
-			else
-			{
-				fsn->attachObject(cylinder(cm));
-				const Ogre::Vector3 pos =fsn->getPosition();
-				fsn->pitch((Ogre::Radian) Ogre::Math::PI);
-				fsn->setPosition(pos);
-			}
-			std::stringstream ss;
-			ss << "file name: " << app.e.name << "\n\nlast access time: " << app.e.access_time << "\nmodification time: " 
-				<< app.e.modification_time << "\ncreation time: " << app.e.creation_time;
-			std::string s = ss.str();
-			
-			Ogre::MovableText* msg = new Ogre::MovableText("tayyar", (s));
-			msg->setTextAlignment(Ogre::MovableText::H_CENTER, Ogre::MovableText::V_CENTER); // Center horizontally and display above the node	
-			msg->setColor(Ogre::ColourValue(1,1,1,.65));
-
-			fontNode->attachObject(msg);
-
-			fsn->setPosition(y * cos(theta), 0, y * sin(theta));
-			fontNode->setPosition(fsn->getPosition().x + 6, fsn->getPosition().y, fsn->getPosition().z + 3.75);
-			
-
-			fsn->scale(.09,((float) app.e.size / 20000000 + 0.1),.09);
-
-		
-
-			OutputDebugString(fileName);
-			OutputDebugString("\n");
-			
-		}
-
-		distFromCentre += Ogre::Math::PI * 6;
-		
-	}
-
-	
-		
 
 	//const char* dir = "C:/";
 	//scan(dir);
 
+#pragma region initialise_gui_elements
 
 	mRenderer = &CEGUI::OgreRenderer::bootstrapSystem();
 
@@ -685,34 +560,34 @@ void DigitalForensicsVisualisation::createScene(void)
 	CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().setVisible( true );
 
 	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
-	CEGUI::Window *sheet = wmgr.createWindow("DefaultWindow", "CEGUIDemo/Sheet");
+	sheet = wmgr.createWindow("DefaultWindow", "CEGUIDemo/Sheet");
 	
 	
-	CEGUI::Tooltip* tt1 = static_cast<CEGUI::Tooltip*> (wmgr.createWindow("AlfiskoSkin/Label","tt1"));
+	tt1 = static_cast<CEGUI::Tooltip*> (wmgr.createWindow("AlfiskoSkin/Label","tt1"));
 	tt1->setPosition(CEGUI::UVector2(CEGUI::UDim(-0.021,0),CEGUI::UDim(0.075,0)));
 	tt1->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
 	tt1->setText("Accessed files between:");
 	sheet->addChild(tt1);
 
-	CEGUI::Editbox* d1 = static_cast<CEGUI::Editbox*> (wmgr.createWindow("AlfiskoSkin/Editbox","eb1"));
+	d1 = static_cast<CEGUI::Editbox*> (wmgr.createWindow("AlfiskoSkin/Editbox","eb1"));
 	d1->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.105,0)));
 	d1->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
 	d1->setText("02-04-2011");
 	sheet->addChild(d1);
 
-	CEGUI::Editbox* d2 = static_cast<CEGUI::Editbox*> (wmgr.createWindow("AlfiskoSkin/Editbox","eb2"));
+	d2 = static_cast<CEGUI::Editbox*> (wmgr.createWindow("AlfiskoSkin/Editbox","eb2"));
 	d2->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.135,0)));
 	d2->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
 	d2->setText("08-12-2014");
 	sheet->addChild(d2);
 
-	CEGUI::Tooltip* tt2 = static_cast<CEGUI::Tooltip*> (wmgr.createWindow("AlfiskoSkin/Label","tt2"));
+	tt2 = static_cast<CEGUI::Tooltip*> (wmgr.createWindow("AlfiskoSkin/Label","tt2"));
 	tt2->setPosition(CEGUI::UVector2(CEGUI::UDim(-0.071,0),CEGUI::UDim(0.170,0)));
 	tt2->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
 	tt2->setText("Sort files by:");
 	sheet->addChild(tt2);
 
-	CEGUI::RadioButton* rb1 = static_cast<CEGUI::RadioButton*> (wmgr.createWindow("AlfiskoSkin/RadioButton","rb1"));
+	rb1 = static_cast<CEGUI::RadioButton*> (wmgr.createWindow("AlfiskoSkin/RadioButton","rb1"));
 	rb1->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.2,0)));
 	rb1->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
 	rb1->setText("Last Access Date");
@@ -722,7 +597,7 @@ void DigitalForensicsVisualisation::createScene(void)
 	rb1->setVisible(true);
 	sheet->addChild(rb1);
 
-	CEGUI::RadioButton* rb2 = static_cast<CEGUI::RadioButton*> (wmgr.createWindow("AlfiskoSkin/RadioButton","rb2"));
+	rb2 = static_cast<CEGUI::RadioButton*> (wmgr.createWindow("AlfiskoSkin/RadioButton","rb2"));
 	rb2->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.225,0)));
 	rb2->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
 	rb2->setText("Last Modification Date");
@@ -732,7 +607,7 @@ void DigitalForensicsVisualisation::createScene(void)
 	rb2->setVisible(true);
 	sheet->addChild(rb2);
 
-	CEGUI::RadioButton* rb3 = static_cast<CEGUI::RadioButton*> (wmgr.createWindow("AlfiskoSkin/RadioButton","rb3"));
+	rb3 = static_cast<CEGUI::RadioButton*> (wmgr.createWindow("AlfiskoSkin/RadioButton","rb3"));
 	rb3->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.250,0)));
 	rb3->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
 	rb3->setText("Creation Date");
@@ -743,52 +618,276 @@ void DigitalForensicsVisualisation::createScene(void)
 	sheet->addChild(rb3);
 
 	//toggle button 
-	CEGUI::ToggleButton* tb = static_cast<CEGUI::ToggleButton*> (wmgr.createWindow("AlfiskoSkin/Checkbox","toggle"));
+	tb = static_cast<CEGUI::ToggleButton*> (wmgr.createWindow("AlfiskoSkin/Checkbox","toggle"));
 	tb->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.3,0)));
 	tb->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
 	tb->setText("Sort in descending order");
 	sheet->addChild(tb);
 
 	//visualise button
-	CEGUI::Window* visualise = wmgr.createWindow("AlfiskoSkin/Button", "visualise");
-	visualise->setText("Visualise!");
-	visualise->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.4,0)));
-	visualise->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.05, 0)));
-	visualise->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&DigitalForensicsVisualisation::visualise, this));
-	sheet->addChild(visualise);
+	visualise_button = wmgr.createWindow("AlfiskoSkin/Button", "visualise_button");
+	visualise_button->setText("Visualise!");
+	visualise_button->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.4,0)));
+	visualise_button->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.05, 0)));
+	visualise_button->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&DigitalForensicsVisualisation::visualise, this));
+	sheet->addChild(visualise_button);
 
-
-
+	progress_bar = static_cast<CEGUI::ProgressBar*> (wmgr.createWindow("AlfiskoSkin/ProgressBar","progress_bar"));
+	progress_bar->setPosition(CEGUI::UVector2(CEGUI::UDim(0.5,0),CEGUI::UDim(0.4,0)));
+	progress_bar->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.1, 0)));
+	sheet->addChild(progress_bar);
+	progress_bar->setVisible(false);
 
 	CEGUI::System::getSingleton().getDefaultGUIContext().setRootWindow(sheet);
 
-
-	mysqlDisconnect();
-
-	handNode->setVisible(false);
+#pragma endregion initialise_gui_elements
+	
 
 	
 }
 
 //---------------------------------------------------------------------------------------
+void DigitalForensicsVisualisation::beginProgress()
+{
+	progress_bar->setVisible(true);
+	progress_bar->activate();
+	progress_bar->setProgress(0.25f);
+	visualise_button->deactivate();
+}
+
+
+//---------------------------------------------------------------------------------------
+void DigitalForensicsVisualisation::endProgress()
+{
+	progress_bar->deactivate();
+	progress_bar->setVisible(false);
+	visualise_button->activate();
+}
+
+//---------------------------------------------------------------------------------------
+std::string DigitalForensicsVisualisation::parseDateInput(const char* date)
+{
+	char *day, *month, *year;
+	char *value = (char*) malloc (strlen (date) +2 );
+	sprintf(value, "%s", date);
+	char *dummy;
+	dummy = strtok (value, "-"); // day
+	day = dummy;
+	dummy = strtok (NULL, "-"); // month
+	month = dummy;
+	dummy = strtok (NULL, " "); // year
+	year = dummy;
+
+	std::stringstream parsedDate;
+	parsedDate << year << month << day;
+
+	free(value);
+	day = month = year = value = NULL;
+
+	return parsedDate.str();
+}
+
+//---------------------------------------------------------------------------------------
+const char DigitalForensicsVisualisation::orderBy()
+{
+	return (rb1->isSelected() ? 'a' : rb2->isSelected() ? 'm' : 'c');
+}
+
+//---------------------------------------------------------------------------------------
+const char* const DigitalForensicsVisualisation::orderIn()
+{
+	return (tb->isSelected() ? "desc" : " ");
+}
+
+//---------------------------------------------------------------------------------------
+const std::string DigitalForensicsVisualisation::buildQuery ()
+{
+	std::stringstream queryBuilder;
+
+	queryBuilder << "SELECT * FROM file where ( a > " << parseDateInput(d1->getText().c_str()) << " and a < " 
+		<< parseDateInput(d2->getText().c_str()) << " ) order by " << orderBy() << " " << orderIn() << " ;" ; 
+
+	return queryBuilder.str();
+}
+
+//---------------------------------------------------------------------------------------
 bool DigitalForensicsVisualisation::visualise(const CEGUI::EventArgs &e)
 {
-    
-	OutputDebugString("visualise!!!!");
+	try
+	{
+		mSceneMgr->getRootSceneNode()->removeAndDestroyChild("FilesNode");
+		mSceneMgr->destroyAllMovableObjects(); //does not destroy movable texts, they are needed to be destroyed manually
+		mSceneMgr->destroyAllManualObjects();
+		cubeCount = pyramidCount = cylinderCount = 0;
+
+		for(unsigned long int i = 0; i < textArrIndex; ++i)
+		{
+			delete textArr[textArrIndex];
+			textArr[textArrIndex] = NULL;
+		}
+
+		textArrIndex = 0;
+	}
+	catch(std::exception& e)
+	{
+		//do nothing
+		OutputDebugString("DID NOTHING\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\nnREALLYDIDNOTHING\nn");
+	}
+
+	beginProgress();
+
+	const float radius = 2000;
+	const float thickness = 1955;
 	
+
+	try
+	{
+
+		MYSQL_RES *res_set; /* Create a pointer to recieve the return value.*/
+		MYSQL_ROW row;  /* Assign variable for rows. */
+ 
+		OutputDebugString(buildQuery().c_str());
+		res_set = mysqlExecute(buildQuery().c_str());
+		unsigned long long int numrows = mysql_num_rows(res_set); /* Create the count to print all rows */
+ 
+
+		float distFromCentre = radius - thickness;
+		unsigned long long int itemIndex = 0;
+		char containerName[50]; //for container
+		char fileName[50]; //for fileName
+		char fontName[50]; //for fontName
+
+		filesNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("FilesNode");
+		filesNode->setPosition (0, -300, -500);
+
+		srand(time(NULL));
+
 	
+		for (float y = radius - thickness; y <= radius; y += Ogre::Math::PI * 6)
+		{
+
+			//progress_bar->setProgress(progress_bar->getProgress() + ( 1/ (Ogre::Math::PI / (thickness * thickness))));
+
+			for (float theta = 0; theta <= Ogre::Math::PI * 1.8; theta += Ogre::Math::PI / (distFromCentre / 6)) 
+			{
+				if ((row = mysql_fetch_row(res_set)) == NULL)
+					break;
+
+			
+				try
+				{	
+
+					app.e.name = row[0];
+					app.e.directory = row[1];
+					app.e.size = std::stoull(row[2]); //for unsigned long long
+					std::string ext = row[3];
+			
+					for (unsigned int i = 0; i < ext.length(); ++i)
+					{
+						ext[i] = std::toupper(ext[i]);
+					}
+
+					app.e.extension = ext;
+
+					app.e.write_permission = std::stoi(row[4]);
+					app.e.access_permission = std::stoi(row[5]);
+					app.e.creation_time = row[6];
+					app.e.access_time = row[7];
+					app.e.modification_time = row[8];
+					app.e.c = std::stoi(row[9]);
+					app.e.a = std::stoi(row[10]);
+					app.e.m = std::stoi(row[11]);
+			
+				}
+				catch(std::exception& e)
+				{	
+					OutputDebugString(e.what());
+					OutputDebugString("SIZEEXCEPTIONNN\nn\n\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\n\nn\nn\nn\nn\nnn\nn\nSIZEEXCEPTIONNN\nn\n");
+					app.e.creation_time = app.e.modification_time = app.e.access_time = app.e.name = "exception occured";
+				
+				}
+
+				sprintf(containerName,"container_%d",itemIndex);
+				sprintf(fontName,"font_%d", itemIndex);
+				sprintf(fileName, "file_%d", itemIndex++);
+
+				Ogre::SceneNode* container = filesNode->createChildSceneNode(containerName);
+				Ogre::SceneNode* fsn = container->createChildSceneNode(fileName);
+				Ogre::SceneNode* fontNode = container->createChildSceneNode(fontName);
+
+			
+
+				ColorMap cm(app.e.extension);
+			
+
+				if (colorTree.search(cm) == NULL)
+					colorTree.insert(cm);
+				else
+					cm = colorTree.search(cm)->data;
+				
+
+		
+
+			
+
+				if ((app.e.write_permission == 1) && (app.e.access_permission == 1))
+					fsn ->attachObject(cube(true, cm));
+				else if ((app.e.write_permission == 1) && (app.e.access_permission == 0))
+					fsn->attachObject(cube(false, cm));
+				else if ((app.e.write_permission == 0) && (app.e.access_permission == 1))
+				{
+					fsn -> attachObject(pyramid(cm));
+					fsn -> scale (1.3, 1.3, 1.3);
+					fsn ->setPosition(Ogre::Vector3(fsn->getPosition().x + 1,fsn->getPosition().y,fsn->getPosition().z + 1));
+				}
+				else
+				{
+					fsn->attachObject(cylinder(cm));
+					const Ogre::Vector3 pos =fsn->getPosition();
+					fsn->pitch((Ogre::Radian) Ogre::Math::PI);
+					fsn->setPosition(pos);
+				}
+				std::stringstream ss;
+				ss << "file name: " << app.e.name << "\n\nlast access time: " << app.e.access_time << "\nmodification time: " 
+					<< app.e.modification_time << "\ncreation time: " << app.e.creation_time;
+				std::string s = ss.str();
+			
+				textArr[textArrIndex] = new Ogre::MovableText("tayyar", (s));
+				textArr[textArrIndex] ->setTextAlignment(Ogre::MovableText::H_CENTER, Ogre::MovableText::V_CENTER); // Center horizontally and display above the node	
+				textArr[textArrIndex] ->setColor(Ogre::ColourValue(1,1,1,.65));
+
+				fontNode->attachObject(textArr[textArrIndex++]);
+
+				fsn->setPosition(y * cos(theta), 0, y * sin(theta));
+				fontNode->setPosition(fsn->getPosition().x + 6, fsn->getPosition().y, fsn->getPosition().z + 3.75);
+			
+
+				fsn->scale(.09,((float) app.e.size / 20000000 + 0.1),.09);
+
+		
+
+				OutputDebugString(fileName);
+				OutputDebugString("\n");
+			
+			}
+
+			distFromCentre += Ogre::Math::PI * 6;
+		
+		}
+
+	}
+	catch(std::exception& e)
+	{
+		OutputDebugString(e.what());
+		OutputDebugString("EXCEPTIONNN\nn\n\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\nn\n\nn\nn\nn\nn\nnn\nn\nEXCEPTIONNN\nn\n");
+					
+	}
+	
+	endProgress();
 	return true;
 }
 
-////-------------------------------------------------------------------------------------
-bool DigitalForensicsVisualisation::quit(const CEGUI::EventArgs &e)
-{
-    
-	
-	mShutDown = true;
-	
-	return true;
-}
+
 
 //-------------------------------------------------------------------------------------
 void DigitalForensicsVisualisation::createViewports(void)
@@ -802,11 +901,108 @@ void DigitalForensicsVisualisation::createViewports(void)
 	mCamera->setAspectRatio(Ogre::Real(vp->getActualWidth()) / Ogre::Real(vp->getActualHeight()));  
 
 }
- 
+
+//-------------------------------------------------------------------------------------
+bool DigitalForensicsVisualisation::keyPressed( const OIS::KeyEvent &arg )
+{
+
+	if (arg.key == OIS::KC_H)   // toggle visibility of advanced frame stats
+    {
+		sheet->setVisible((sheet->isVisible() ? false : true));
+    }
+    
+    else if (arg.key == OIS::KC_R)   // cycle polygon rendering mode
+    {
+        Ogre::String newVal;
+        Ogre::PolygonMode pm;
+
+        switch (mCamera->getPolygonMode())
+        {
+        case Ogre::PM_SOLID:
+            newVal = "Wireframe";
+            pm = Ogre::PM_WIREFRAME;
+            break;
+        case Ogre::PM_WIREFRAME:
+            newVal = "Points";
+            pm = Ogre::PM_POINTS;
+            break;
+        default:
+            newVal = "Solid";
+            pm = Ogre::PM_SOLID;
+        }
+
+        mCamera->setPolygonMode(pm);
+    }
+    else if(arg.key == OIS::KC_F5)   // refresh all textures
+    {
+        Ogre::TextureManager::getSingleton().reloadAll();
+    }
+    else if (arg.key == OIS::KC_SYSRQ)   // take a screenshot
+    {
+        mWindow->writeContentsToTimestampedFile("screenshot", ".jpg");
+    }
+    else if (arg.key == OIS::KC_ESCAPE)
+    {
+        mShutDown = true;
+    }
+
+	CEGUI::System &sys = CEGUI::System::getSingleton();
+	sys.getDefaultGUIContext().injectKeyDown((CEGUI::Key::Scan) arg.key);
+	sys.getDefaultGUIContext().injectChar(arg.text);
+    mCameraMan->injectKeyDown(arg);
+    return true;
+
+
+
+}
+
+//-------------------------------------------------------------------------------------
+bool DigitalForensicsVisualisation::keyReleased( const OIS::KeyEvent &arg )
+{
+	CEGUI::System &sys = CEGUI::System::getSingleton();
+	sys.getDefaultGUIContext().injectKeyUp((CEGUI::Key::Scan) arg.key);
+    mCameraMan->injectKeyUp(arg);
+    return true;
+}
 
 
 //-------------------------------------------------------------------------------------
+bool DigitalForensicsVisualisation::mouseMoved( const OIS::MouseEvent &arg )
+{
+  
+    if (false) {
+	mCameraMan->injectMouseMove(arg);
+	}
+	else {
+	CEGUI::System &sys = CEGUI::System::getSingleton();
+	sys.getDefaultGUIContext().injectMouseMove(arg.state.X.rel, arg.state.Y.rel);
+	// Scroll wheel.
+	if (arg.state.Z.rel)
+		sys.getDefaultGUIContext().injectMouseWheelChange(arg.state.Z.rel / 120.0f);
+	}
 
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool DigitalForensicsVisualisation::mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
+{
+	CEGUI::System &sys = CEGUI::System::getSingleton();
+	sys.getDefaultGUIContext().injectMouseButtonDown(BaseApplication::convertButton(id));
+    return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool DigitalForensicsVisualisation::mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
+{
+    
+	CEGUI::System &sys = CEGUI::System::getSingleton();
+	sys.getDefaultGUIContext().injectMouseButtonUp(BaseApplication::convertButton(id));
+    mCameraMan->injectMouseUp(arg, id);
+    return true;
+}
+
+//-------------------------------------------------------------------------------------
 bool DigitalForensicsVisualisation::processUnbufferedInput(const Ogre::FrameEvent& evt)
 {
 	
@@ -856,9 +1052,10 @@ bool DigitalForensicsVisualisation::processUnbufferedInput(const Ogre::FrameEven
 
 		if (rightMost.grabStrength() == 1)
 		{
-			char* dummy = (char*) malloc(8);
+			/*char* dummy = (char*) malloc(8);
 			sprintf (dummy, "%f\n", rightMost.grabStrength()); 
 			OutputDebugString(dummy);
+			free (dummy);*/
 			mCamera->pitch((Ogre::Radian) (rightMost.palmPosition().y - previousPosition.y) / 80);
 			//mCamera->yaw((Ogre::Radian) (rightMost.palmPosition().x - previousPosition.x) / -80);
 			//mCamera->roll((Ogre::Radian) (rollValue - previousFrameRoll) / 30);

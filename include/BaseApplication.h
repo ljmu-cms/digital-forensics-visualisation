@@ -27,8 +27,11 @@ class BaseApplication : public Ogre::FrameListener, public Ogre::WindowEventList
 public:
     BaseApplication(void);
     virtual ~BaseApplication(void);
-
     virtual void go(void);
+
+	//convert ois button to cegui button
+	CEGUI::MouseButton convertButton(OIS::MouseButtonID buttonID);
+
 protected:
     virtual bool setup();
     virtual bool configure(void);
@@ -41,6 +44,7 @@ protected:
     virtual void setupResources(void);
     virtual void createResourceListener(void);
     virtual void loadResources(void);
+
 
     // Ogre::FrameListener
     virtual bool frameRenderingQueued(const Ogre::FrameEvent& evt);

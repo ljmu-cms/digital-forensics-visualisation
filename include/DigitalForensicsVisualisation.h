@@ -3,7 +3,7 @@
 
 
 
-
+#include "MovableText.h"
 #include "BaseApplication.h"
 #include "SampleListener.h"
 #include <stdio.h>
@@ -25,6 +25,8 @@ private:
 
 	BST <ColorMap> colorTree;
 	Ogre::SceneNode* bonesArr[20]; //array that stores the addresses of the bones
+	Ogre::MovableText* textArr[5000000];
+	unsigned long int textArrIndex;
 	SampleListener leapSampleListener;
 	Controller leapController;
 	bool processUnbufferedInput(const Ogre::FrameEvent& evt);
@@ -44,18 +46,41 @@ private:
 	Ogre::ManualObject* const pyramid(ColorMap);
 	Ogre::ManualObject* const cylinder(ColorMap);
 	
+	//GUI Elements
+	CEGUI::Window *sheet;
+	//static text fields
+	CEGUI::Tooltip* tt1;
+	CEGUI::Tooltip* tt2;
+	//editboxes for text inputs
+	CEGUI::Editbox* d1;
+	CEGUI::Editbox* d2;
+	//radio buttons
+	CEGUI::RadioButton* rb1;
+	CEGUI::RadioButton* rb2;
+	CEGUI::RadioButton* rb3;
+	//check box
+	CEGUI::ToggleButton* tb;
+	//used as button
+	CEGUI::Window* visualise_button;
 
+	CEGUI::ProgressBar* progress_bar;
+
+	void beginProgress();
+	void endProgress();
+
+	std::string parseDateInput(const char*);
+	const std::string buildQuery();
+	const char* const orderIn();
+	const char orderBy();
 
 public:
-	
-	
 
 	Entity e;
     DigitalForensicsVisualisation(void);
     virtual ~DigitalForensicsVisualisation(void);
-	int cubeCount;
-	int pyramidCount;
-	int cylinderCount;
+	unsigned long long int cubeCount;
+	unsigned long long int pyramidCount;
+	unsigned long long int cylinderCount;
 	//OgreBites::Label* mInfoLabel;
 
 protected:
@@ -63,10 +88,7 @@ protected:
     virtual void createScene(void);
 	virtual void createViewports(void);
 
-
-
-
-	    CEGUI::OgreRenderer* mRenderer;
+	CEGUI::OgreRenderer* mRenderer;
  
    
 	//virtual void createFrameListener(void);
@@ -75,16 +97,15 @@ protected:
     // Ogre::FrameListener
     virtual bool frameRenderingQueued(const Ogre::FrameEvent& evt);
  
-    // OIS::KeyListener
-    //virtual bool keyPressed( const OIS::KeyEvent &arg );
-    //virtual bool keyReleased( const OIS::KeyEvent &arg );
+    // OIS::KeyListener and CEGUI listener
+    virtual bool keyPressed( const OIS::KeyEvent &arg );
+    virtual bool keyReleased( const OIS::KeyEvent &arg );
     //// OIS::MouseListener
-    //virtual bool mouseMoved( const OIS::MouseEvent &arg );
-    //virtual bool mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id );
-    //virtual bool mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id );
+    virtual bool mouseMoved( const OIS::MouseEvent &arg );
+    virtual bool mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id );
+    virtual bool mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id );
 	
     bool visualise(const CEGUI::EventArgs &e);
-    bool quit(const CEGUI::EventArgs &e);
 
 	
 };

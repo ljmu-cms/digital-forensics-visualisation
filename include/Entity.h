@@ -54,6 +54,7 @@ public:
 
 		date.date = (date.year * 10000) + (date.month * 100) + date.day;
 		free (value);
+		value = dummy = NULL;
 		return date.date;
 	}
 

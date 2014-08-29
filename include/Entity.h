@@ -3,11 +3,11 @@
 #include <stdlib.h>
 #include <time.h>
 
-typedef struct 
+struct Date
 {
 	unsigned short year,month,day;
 	unsigned long date;
-}Date;
+};
 
 
 

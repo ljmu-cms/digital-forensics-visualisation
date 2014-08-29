@@ -560,85 +560,85 @@ void DigitalForensicsVisualisation::createScene(void)
 	CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().setVisible( true );
 
 	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
-	sheet = wmgr.createWindow("DefaultWindow", "CEGUIDemo/Sheet");
+	gui.sheet = wmgr.createWindow("DefaultWindow", "CEGUIDemo/Sheet");
 	
 	
-	tt1 = static_cast<CEGUI::Tooltip*> (wmgr.createWindow("AlfiskoSkin/Label","tt1"));
-	tt1->setPosition(CEGUI::UVector2(CEGUI::UDim(-0.021,0),CEGUI::UDim(0.075,0)));
-	tt1->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
-	tt1->setText("Accessed files between:");
-	sheet->addChild(tt1);
+	gui.tt1 = static_cast<CEGUI::Tooltip*> (wmgr.createWindow("AlfiskoSkin/Label","tt1"));
+	gui.tt1->setPosition(CEGUI::UVector2(CEGUI::UDim(-0.021,0),CEGUI::UDim(0.075,0)));
+	gui.tt1->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	gui.tt1->setText("Accessed files between:");
+	gui.sheet->addChild(gui.tt1);
 
-	d1 = static_cast<CEGUI::Editbox*> (wmgr.createWindow("AlfiskoSkin/Editbox","eb1"));
-	d1->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.105,0)));
-	d1->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
-	d1->setText("02-04-2011");
-	sheet->addChild(d1);
+	gui.d1 = static_cast<CEGUI::Editbox*> (wmgr.createWindow("AlfiskoSkin/Editbox","eb1"));
+	gui.d1->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.105,0)));
+	gui.d1->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	gui.d1->setText("02-04-2014");
+	gui.sheet->addChild(gui.d1);
 
-	d2 = static_cast<CEGUI::Editbox*> (wmgr.createWindow("AlfiskoSkin/Editbox","eb2"));
-	d2->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.135,0)));
-	d2->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
-	d2->setText("08-12-2014");
-	sheet->addChild(d2);
+	gui.d2 = static_cast<CEGUI::Editbox*> (wmgr.createWindow("AlfiskoSkin/Editbox","eb2"));
+	gui.d2->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.135,0)));
+	gui.d2->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	gui.d2->setText("08-12-2014");
+	gui.sheet->addChild(gui.d2);
 
-	tt2 = static_cast<CEGUI::Tooltip*> (wmgr.createWindow("AlfiskoSkin/Label","tt2"));
-	tt2->setPosition(CEGUI::UVector2(CEGUI::UDim(-0.071,0),CEGUI::UDim(0.170,0)));
-	tt2->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
-	tt2->setText("Sort files by:");
-	sheet->addChild(tt2);
+	gui.tt2 = static_cast<CEGUI::Tooltip*> (wmgr.createWindow("AlfiskoSkin/Label","tt2"));
+	gui.tt2->setPosition(CEGUI::UVector2(CEGUI::UDim(-0.071,0),CEGUI::UDim(0.170,0)));
+	gui.tt2->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	gui.tt2->setText("Sort files by:");
+	gui.sheet->addChild(gui.tt2);
 
-	rb1 = static_cast<CEGUI::RadioButton*> (wmgr.createWindow("AlfiskoSkin/RadioButton","rb1"));
-	rb1->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.2,0)));
-	rb1->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
-	rb1->setText("Last Access Date");
-	rb1->setGroupID(1);
-	rb1->setID(1);
-	rb1->setSelected(true);
-	rb1->setVisible(true);
-	sheet->addChild(rb1);
+	gui.rb1 = static_cast<CEGUI::RadioButton*> (wmgr.createWindow("AlfiskoSkin/RadioButton","rb1"));
+	gui.rb1->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.2,0)));
+	gui.rb1->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	gui.rb1->setText("Last Access Date");
+	gui.rb1->setGroupID(1);
+	gui.rb1->setID(1);
+	gui.rb1->setSelected(true);
+	gui.rb1->setVisible(true);
+	gui.sheet->addChild(gui.rb1);
 
-	rb2 = static_cast<CEGUI::RadioButton*> (wmgr.createWindow("AlfiskoSkin/RadioButton","rb2"));
-	rb2->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.225,0)));
-	rb2->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
-	rb2->setText("Last Modification Date");
-	rb2->setGroupID(1);
-	rb2->setID(2);
-	rb2->setSelected(false);
-	rb2->setVisible(true);
-	sheet->addChild(rb2);
+	gui.rb2 = static_cast<CEGUI::RadioButton*> (wmgr.createWindow("AlfiskoSkin/RadioButton","rb2"));
+	gui.rb2->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.225,0)));
+	gui.rb2->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	gui.rb2->setText("Last Modification Date");
+	gui.rb2->setGroupID(1);
+	gui.rb2->setID(2);
+	gui.rb2->setSelected(false);
+	gui.rb2->setVisible(true);
+	gui.sheet->addChild(gui.rb2);
 
-	rb3 = static_cast<CEGUI::RadioButton*> (wmgr.createWindow("AlfiskoSkin/RadioButton","rb3"));
-	rb3->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.250,0)));
-	rb3->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
-	rb3->setText("Creation Date");
-	rb3->setGroupID(1);
-	rb3->setID(3);
-	rb3->setSelected(false);
-	rb3->setVisible(true);
-	sheet->addChild(rb3);
+	gui.rb3 = static_cast<CEGUI::RadioButton*> (wmgr.createWindow("AlfiskoSkin/RadioButton","rb3"));
+	gui.rb3->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.250,0)));
+	gui.rb3->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	gui.rb3->setText("Creation Date");
+	gui.rb3->setGroupID(1);
+	gui.rb3->setID(3);
+	gui.rb3->setSelected(false);
+	gui.rb3->setVisible(true);
+	gui.sheet->addChild(gui.rb3);
 
 	//toggle button 
-	tb = static_cast<CEGUI::ToggleButton*> (wmgr.createWindow("AlfiskoSkin/Checkbox","toggle"));
-	tb->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.3,0)));
-	tb->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
-	tb->setText("Sort in descending order");
-	sheet->addChild(tb);
+	gui.tb = static_cast<CEGUI::ToggleButton*> (wmgr.createWindow("AlfiskoSkin/Checkbox","toggle"));
+	gui.tb->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.3,0)));
+	gui.tb->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	gui.tb->setText("Sort in descending order");
+	gui.sheet->addChild(gui.tb);
 
 	//visualise button
-	visualise_button = wmgr.createWindow("AlfiskoSkin/Button", "visualise_button");
-	visualise_button->setText("Visualise!");
-	visualise_button->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.4,0)));
-	visualise_button->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.05, 0)));
-	visualise_button->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&DigitalForensicsVisualisation::visualise, this));
-	sheet->addChild(visualise_button);
+	gui.visualise_button = wmgr.createWindow("AlfiskoSkin/Button", "visualise_button");
+	gui.visualise_button->setText("Visualise!");
+	gui.visualise_button->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.4,0)));
+	gui.visualise_button->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.05, 0)));
+	gui.visualise_button->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&DigitalForensicsVisualisation::visualise, this));
+	gui.sheet->addChild(gui.visualise_button);
 
-	progress_bar = static_cast<CEGUI::ProgressBar*> (wmgr.createWindow("AlfiskoSkin/ProgressBar","progress_bar"));
-	progress_bar->setPosition(CEGUI::UVector2(CEGUI::UDim(0.5,0),CEGUI::UDim(0.4,0)));
-	progress_bar->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.1, 0)));
-	sheet->addChild(progress_bar);
-	progress_bar->setVisible(false);
+	gui.progress_bar = static_cast<CEGUI::ProgressBar*> (wmgr.createWindow("AlfiskoSkin/ProgressBar","progress_bar"));
+	gui.progress_bar->setPosition(CEGUI::UVector2(CEGUI::UDim(0.5,0),CEGUI::UDim(0.4,0)));
+	gui.progress_bar->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.1, 0)));
+	gui.sheet->addChild(gui.progress_bar);
+	gui.progress_bar->setVisible(false);
 
-	CEGUI::System::getSingleton().getDefaultGUIContext().setRootWindow(sheet);
+	CEGUI::System::getSingleton().getDefaultGUIContext().setRootWindow(gui.sheet);
 
 #pragma endregion initialise_gui_elements
 	
@@ -649,19 +649,19 @@ void DigitalForensicsVisualisation::createScene(void)
 //---------------------------------------------------------------------------------------
 void DigitalForensicsVisualisation::beginProgress()
 {
-	progress_bar->setVisible(true);
-	progress_bar->activate();
-	progress_bar->setProgress(0.25f);
-	visualise_button->deactivate();
+	gui.progress_bar->setVisible(true);
+	gui.progress_bar->activate();
+	gui.progress_bar->setProgress(0.25f);
+	gui.visualise_button->deactivate();
 }
 
 
 //---------------------------------------------------------------------------------------
 void DigitalForensicsVisualisation::endProgress()
 {
-	progress_bar->deactivate();
-	progress_bar->setVisible(false);
-	visualise_button->activate();
+	gui.progress_bar->deactivate();
+	gui.progress_bar->setVisible(false);
+	gui.visualise_button->activate();
 }
 
 //---------------------------------------------------------------------------------------
@@ -690,13 +690,13 @@ std::string DigitalForensicsVisualisation::parseDateInput(const char* date)
 //---------------------------------------------------------------------------------------
 const char DigitalForensicsVisualisation::orderBy()
 {
-	return (rb1->isSelected() ? 'a' : rb2->isSelected() ? 'm' : 'c');
+	return (gui.rb1->isSelected() ? 'a' : gui.rb2->isSelected() ? 'm' : 'c');
 }
 
 //---------------------------------------------------------------------------------------
 const char* const DigitalForensicsVisualisation::orderIn()
 {
-	return (tb->isSelected() ? "desc" : " ");
+	return (gui.tb->isSelected() ? "desc" : " ");
 }
 
 //---------------------------------------------------------------------------------------
@@ -704,8 +704,8 @@ const std::string DigitalForensicsVisualisation::buildQuery ()
 {
 	std::stringstream queryBuilder;
 
-	queryBuilder << "SELECT * FROM file where ( a > " << parseDateInput(d1->getText().c_str()) << " and a < " 
-		<< parseDateInput(d2->getText().c_str()) << " ) order by " << orderBy() << " " << orderIn() << " ;" ; 
+	queryBuilder << "SELECT * FROM file where ( a > " << parseDateInput(gui.d1->getText().c_str()) << " and a < " 
+		<< parseDateInput(gui.d2->getText().c_str()) << " ) order by " << orderBy() << " " << orderIn() << " ;" ; 
 
 	return queryBuilder.str();
 }
@@ -722,7 +722,8 @@ bool DigitalForensicsVisualisation::visualise(const CEGUI::EventArgs &e)
 
 		for(unsigned long int i = 0; i < textArrIndex; ++i)
 		{
-			delete textArr[textArrIndex];
+			textArr[textArrIndex]->~MovableText();
+			
 			textArr[textArrIndex] = NULL;
 		}
 
@@ -771,7 +772,7 @@ bool DigitalForensicsVisualisation::visualise(const CEGUI::EventArgs &e)
 			for (float theta = 0; theta <= Ogre::Math::PI * 1.8; theta += Ogre::Math::PI / (distFromCentre / 6)) 
 			{
 				if ((row = mysql_fetch_row(res_set)) == NULL)
-					break;
+					goto exit;
 
 			
 				try
@@ -875,6 +876,7 @@ bool DigitalForensicsVisualisation::visualise(const CEGUI::EventArgs &e)
 		
 		}
 
+	
 	}
 	catch(std::exception& e)
 	{
@@ -883,6 +885,7 @@ bool DigitalForensicsVisualisation::visualise(const CEGUI::EventArgs &e)
 					
 	}
 	
+	exit:
 	endProgress();
 	return true;
 }
@@ -896,7 +899,7 @@ void DigitalForensicsVisualisation::createViewports(void)
     Ogre::Viewport* vp = mWindow->addViewport(mCamera);
     vp->setBackgroundColour(Ogre::ColourValue(.0,.0,.0));
     // Alter the camera aspect ratio to match the viewport
-	mCamera->setFarClipDistance(1500);
+	mCamera->setFarClipDistance(2000);
 	
 	mCamera->setAspectRatio(Ogre::Real(vp->getActualWidth()) / Ogre::Real(vp->getActualHeight()));  
 
@@ -908,7 +911,8 @@ bool DigitalForensicsVisualisation::keyPressed( const OIS::KeyEvent &arg )
 
 	if (arg.key == OIS::KC_H)   // toggle visibility of advanced frame stats
     {
-		sheet->setVisible((sheet->isVisible() ? false : true));
+		gui.sheet->setVisible((gui.sheet->isVisible() ? false : true));
+		CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().setVisible(CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().isVisible() ? false : true );
     }
     
     else if (arg.key == OIS::KC_R)   // cycle polygon rendering mode
@@ -1003,13 +1007,13 @@ bool DigitalForensicsVisualisation::mouseReleased( const OIS::MouseEvent &arg, O
 }
 
 //-------------------------------------------------------------------------------------
-bool DigitalForensicsVisualisation::processUnbufferedInput(const Ogre::FrameEvent& evt)
+bool DigitalForensicsVisualisation::updateFrame(const Ogre::FrameEvent& evt)
 {
 	
 	pointLight->setPosition(mCamera->getPosition());
 
 	//leap
-	static Frame frame;
+	Frame frame;
 	frame = leapController.frame();
 	
 
@@ -1017,19 +1021,22 @@ bool DigitalForensicsVisualisation::processUnbufferedInput(const Ogre::FrameEven
 	Leap::Hand rightMost = frame.hands().rightmost();
 
 	
-	
-	
-	
-	if (!frame.hands().isEmpty() && !handOrientationFlag) 
-	{
-			
-		palmNode->resetOrientation();
-		handOrientationFlag = true;	
-	}
-	else if (handOrientationFlag && frame.hands().isEmpty() )
-	{
-		handOrientationFlag = false;
-	}
+#pragma region hand
+	//
+	//
+	//if (!frame.hands().isEmpty() && !handOrientationFlag) 
+	//{
+	//		
+	//	palmNode->resetOrientation();
+	//	handOrientationFlag = true;	
+	//}
+	//else if (handOrientationFlag && frame.hands().isEmpty() )
+	//{
+	//	handOrientationFlag = false;
+	//}
+
+#pragma endregion hand
+
 
 	if (!frame.hands().isEmpty())
 	{
@@ -1064,8 +1071,8 @@ bool DigitalForensicsVisualisation::processUnbufferedInput(const Ogre::FrameEven
 		else if (angle > 0.8)
 		{
 			
-			palmNode->setPosition(toVector(frame.hands().rightmost().palmPosition())); // between 100 and 250	
-			mCamera->setPosition(mCamera->getPosition() + (palmNode->getPosition() - previousPosition)*2 );
+			//palmNode->setPosition(toVector(frame.hands().rightmost().palmPosition())); // between 100 and 250	
+			mCamera->setPosition(mCamera->getPosition() + (toVector(frame.hands().rightmost().palmPosition()) - previousPosition)*2 );
 			
 			
 		}
@@ -1077,47 +1084,47 @@ bool DigitalForensicsVisualisation::processUnbufferedInput(const Ogre::FrameEven
 		previousPosition = toVector(frame.hands().rightmost().palmPosition());
 		
 
+#pragma region hand
+		//palmNode->pitch((Ogre::Radian) (pitchValue - previousFramePitch) );
 
-		palmNode->pitch((Ogre::Radian) (pitchValue - previousFramePitch) );
+		//
+		//palmNode->roll((Ogre::Radian) (rollValue - previousFrameRoll) );
 
-		
-		palmNode->roll((Ogre::Radian) (rollValue - previousFrameRoll) );
+		//
+		//palmNode->yaw((Ogre::Radian) (yawValue - previousFrameYaw) );
 
-		
-		palmNode->yaw((Ogre::Radian) (yawValue - previousFrameYaw) );
-
-		previousFramePitch = rightMost.direction().pitch() * RAD_TO_DEG;
-		previousFrameYaw = rightMost.direction().yaw() * RAD_TO_DEG;
-		previousFrameRoll = rightMost.palmNormal().roll() * RAD_TO_DEG;
+		//previousFramePitch = rightMost.direction().pitch() * RAD_TO_DEG;
+		//previousFrameYaw = rightMost.direction().yaw() * RAD_TO_DEG;
+		//previousFrameRoll = rightMost.palmNormal().roll() * RAD_TO_DEG;
 
 		// Get fingers
-		static FingerList fingers; 
-		fingers = rightMost.fingers();
-		int i = 0; //between 0 and 19 (finger bones)
-		
-		for (FingerList::const_iterator fl = fingers.begin(); fl != fingers.end(); ++fl) 
-		{
-			
-			static Finger finger;
-			finger = *fl;
-			
-			
-		  /*char* dummy = (char*) malloc(128);
-			sprintf (dummy, "finger id: %d, length: %f, width: %f\n", finger.id(), finger.length(), finger.width()); 
-			OutputDebugString (dummy);
-			free(dummy);*/
+		//FingerList fingers; 
+		//fingers = rightMost.fingers();
+		//int i = 0; //between 0 and 19 (finger bones)
+		//
+		//for (FingerList::const_iterator fl = fingers.begin(); fl != fingers.end(); ++fl) 
+		//{
+		//	
+		//	Finger finger;
+		//	finger = *fl;
+		//	
+		//	
+		//  /*char* dummy = (char*) malloc(128);
+		//	sprintf (dummy, "finger id: %d, length: %f, width: %f\n", finger.id(), finger.length(), finger.width()); 
+		//	OutputDebugString (dummy);
+		//	free(dummy);*/
 
-			// Get finger bones
-			for (int b = 0; b < 4; ++b) 
-			{
-				static Bone::Type boneType;
-				boneType = static_cast<Bone::Type>(b);
-				static Bone bone;
-				bone = finger.bone(boneType);
-				bonesArr[i++]->setPosition(bone.center().x, bone.center().y, bone.center().z);
+		//	// Get finger bones
+		//	for (int b = 0; b < 4; ++b) 
+		//	{
+		//		Bone::Type boneType;
+		//		boneType = static_cast<Bone::Type>(b);
+		//		Bone bone;
+		//		bone = finger.bone(boneType);
+		//		bonesArr[i++]->setPosition(bone.center().x, bone.center().y, bone.center().z);
 
-			}
-		}
+		//	}
+		//}
 
 		// to detect fist
 		/*char* dummy = (char*) malloc(8);
@@ -1136,6 +1143,7 @@ bool DigitalForensicsVisualisation::processUnbufferedInput(const Ogre::FrameEven
 		//char* dummy = (char*) malloc(8);
 		//sprintf (dummy, "%f\n", angle); 
 		//OutputDebugString(dummy);
+#pragma endregion hand
 	}
 
 
@@ -1150,7 +1158,7 @@ bool DigitalForensicsVisualisation::frameRenderingQueued(const Ogre::FrameEvent&
 {
     bool ret = BaseApplication::frameRenderingQueued(evt);
  
-    if (!processUnbufferedInput(evt)) return false;
+    if (!updateFrame(evt)) return false;
  
     return ret;
 }

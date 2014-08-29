@@ -17,35 +17,9 @@
 #include "../res/resource.h"
 #endif
 
-
-class DigitalForensicsVisualisation : public BaseApplication
+struct GUIElements
 {
 
-private:
-
-	BST <ColorMap> colorTree;
-	Ogre::SceneNode* bonesArr[20]; //array that stores the addresses of the bones
-	Ogre::MovableText* textArr[5000000];
-	unsigned long int textArrIndex;
-	SampleListener leapSampleListener;
-	Controller leapController;
-	bool processUnbufferedInput(const Ogre::FrameEvent& evt);
-	Ogre::SceneNode* handNode;
-	Ogre::SceneNode *palmNode;
-	Ogre::SceneNode* fingersNode;
-	Ogre::SceneNode* filesNode;
-	Ogre::Vector3 previousPosition;
-	float previousFramePitch;
-	float previousFrameYaw;
-	float previousFrameRoll;
-	bool handOrientationFlag;
-
-	Ogre::Light* pointLight;
-
-	Ogre::ManualObject* const cube(bool isFrustum, ColorMap);
-	Ogre::ManualObject* const pyramid(ColorMap);
-	Ogre::ManualObject* const cylinder(ColorMap);
-	
 	//GUI Elements
 	CEGUI::Window *sheet;
 	//static text fields
@@ -64,6 +38,42 @@ private:
 	CEGUI::Window* visualise_button;
 
 	CEGUI::ProgressBar* progress_bar;
+
+		
+
+};
+
+class DigitalForensicsVisualisation : public BaseApplication
+{
+
+private:
+
+	BST <ColorMap> colorTree;
+	Ogre::SceneNode* bonesArr[20]; //array that stores the addresses of the bones
+	Ogre::MovableText* textArr[5000000];
+	unsigned long int textArrIndex;
+	SampleListener leapSampleListener;
+	Controller leapController;
+	bool updateFrame(const Ogre::FrameEvent& evt);
+	Ogre::SceneNode* handNode;
+	Ogre::SceneNode *palmNode;
+	Ogre::SceneNode* fingersNode;
+	Ogre::SceneNode* filesNode;
+	Ogre::Vector3 previousPosition;
+	float previousFramePitch;
+	float previousFrameYaw;
+	float previousFrameRoll;
+	bool handOrientationFlag;
+
+	Ogre::Light* pointLight;
+
+	Ogre::ManualObject* const cube(bool isFrustum, ColorMap);
+	Ogre::ManualObject* const pyramid(ColorMap);
+	Ogre::ManualObject* const cylinder(ColorMap);
+	
+
+
+	GUIElements gui;
 
 	void beginProgress();
 	void endProgress();

@@ -419,6 +419,108 @@ DigitalForensicsVisualisation::~DigitalForensicsVisualisation(void)
 	mysqlDisconnect();
 }
 
+
+
+//-------------------------------------------------------------------------------------
+void DigitalForensicsVisualisation::initGUIElements()
+{
+	mRenderer = &CEGUI::OgreRenderer::bootstrapSystem();
+
+	CEGUI::ImageManager::setImagesetDefaultResourceGroup("Imagesets");
+	CEGUI::Font::setDefaultResourceGroup("Fonts");
+	CEGUI::Scheme::setDefaultResourceGroup("Schemes");
+	CEGUI::WidgetLookManager::setDefaultResourceGroup("LookNFeel");
+	CEGUI::WindowManager::setDefaultResourceGroup("Layouts");	
+
+	CEGUI::SchemeManager::getSingleton().createFromFile("AlfiskoSkin.scheme");
+	CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().setDefaultImage("AlfiskoSkin/MouseArrow");
+	CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().setVisible( true );
+
+	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
+	gui.sheet = wmgr.createWindow("DefaultWindow", "CEGUIDemo/Sheet");
+	
+	
+	gui.tt1 = static_cast<CEGUI::Tooltip*> (wmgr.createWindow("AlfiskoSkin/Label","tt1"));
+	gui.tt1->setPosition(CEGUI::UVector2(CEGUI::UDim(-0.021,0),CEGUI::UDim(0.075,0)));
+	gui.tt1->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	gui.tt1->setText("Accessed files between:");
+	gui.sheet->addChild(gui.tt1);
+
+	gui.d1 = static_cast<CEGUI::Editbox*> (wmgr.createWindow("AlfiskoSkin/Editbox","eb1"));
+	gui.d1->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.105,0)));
+	gui.d1->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	gui.d1->setText("02-04-2014");
+	gui.sheet->addChild(gui.d1);
+
+	gui.d2 = static_cast<CEGUI::Editbox*> (wmgr.createWindow("AlfiskoSkin/Editbox","eb2"));
+	gui.d2->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.135,0)));
+	gui.d2->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	gui.d2->setText("08-12-2014");
+	gui.sheet->addChild(gui.d2);
+
+	gui.tt2 = static_cast<CEGUI::Tooltip*> (wmgr.createWindow("AlfiskoSkin/Label","tt2"));
+	gui.tt2->setPosition(CEGUI::UVector2(CEGUI::UDim(-0.071,0),CEGUI::UDim(0.170,0)));
+	gui.tt2->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	gui.tt2->setText("Sort files by:");
+	gui.sheet->addChild(gui.tt2);
+
+	gui.rb1 = static_cast<CEGUI::RadioButton*> (wmgr.createWindow("AlfiskoSkin/RadioButton","rb1"));
+	gui.rb1->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.2,0)));
+	gui.rb1->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	gui.rb1->setText("Last Access Date");
+	gui.rb1->setGroupID(1);
+	gui.rb1->setID(1);
+	gui.rb1->setSelected(true);
+	gui.rb1->setVisible(true);
+	gui.sheet->addChild(gui.rb1);
+
+	gui.rb2 = static_cast<CEGUI::RadioButton*> (wmgr.createWindow("AlfiskoSkin/RadioButton","rb2"));
+	gui.rb2->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.225,0)));
+	gui.rb2->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	gui.rb2->setText("Last Modification Date");
+	gui.rb2->setGroupID(1);
+	gui.rb2->setID(2);
+	gui.rb2->setSelected(false);
+	gui.rb2->setVisible(true);
+	gui.sheet->addChild(gui.rb2);
+
+	gui.rb3 = static_cast<CEGUI::RadioButton*> (wmgr.createWindow("AlfiskoSkin/RadioButton","rb3"));
+	gui.rb3->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.250,0)));
+	gui.rb3->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	gui.rb3->setText("Creation Date");
+	gui.rb3->setGroupID(1);
+	gui.rb3->setID(3);
+	gui.rb3->setSelected(false);
+	gui.rb3->setVisible(true);
+	gui.sheet->addChild(gui.rb3);
+
+	//toggle button 
+	gui.tb = static_cast<CEGUI::ToggleButton*> (wmgr.createWindow("AlfiskoSkin/Checkbox","toggle"));
+	gui.tb->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.3,0)));
+	gui.tb->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	gui.tb->setText("Sort in descending order");
+	gui.sheet->addChild(gui.tb);
+
+	//visualise button
+	gui.visualise_button = wmgr.createWindow("AlfiskoSkin/Button", "visualise_button");
+	gui.visualise_button->setText("Visualise!");
+	gui.visualise_button->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.4,0)));
+	gui.visualise_button->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.05, 0)));
+	gui.visualise_button->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&DigitalForensicsVisualisation::visualise, this));
+	gui.sheet->addChild(gui.visualise_button);
+
+	gui.progress_bar = static_cast<CEGUI::ProgressBar*> (wmgr.createWindow("AlfiskoSkin/ProgressBar","progress_bar"));
+	gui.progress_bar->setPosition(CEGUI::UVector2(CEGUI::UDim(0.5,0),CEGUI::UDim(0.4,0)));
+	gui.progress_bar->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.1, 0)));
+	gui.sheet->addChild(gui.progress_bar);
+	gui.progress_bar->setVisible(false);
+
+	CEGUI::System::getSingleton().getDefaultGUIContext().setRootWindow(gui.sheet);
+
+}
+
+
+
 //-------------------------------------------------------------------------------------
 void DigitalForensicsVisualisation::createScene(void)
 {
@@ -431,7 +533,7 @@ void DigitalForensicsVisualisation::createScene(void)
 	// leap controller and listener objects
 	leapController.addListener(leapSampleListener);
 	leapController.setPolicyFlags(Leap::Controller::POLICY_BACKGROUND_FRAMES);
-	leapSampleListener.onFrame(leapController);
+	//leapSampleListener.onFrame(leapController);
 	// end leap
 
 
@@ -547,98 +649,7 @@ void DigitalForensicsVisualisation::createScene(void)
 
 #pragma region initialise_gui_elements
 
-	mRenderer = &CEGUI::OgreRenderer::bootstrapSystem();
-
-	CEGUI::ImageManager::setImagesetDefaultResourceGroup("Imagesets");
-	CEGUI::Font::setDefaultResourceGroup("Fonts");
-	CEGUI::Scheme::setDefaultResourceGroup("Schemes");
-	CEGUI::WidgetLookManager::setDefaultResourceGroup("LookNFeel");
-	CEGUI::WindowManager::setDefaultResourceGroup("Layouts");	
-
-	CEGUI::SchemeManager::getSingleton().createFromFile("AlfiskoSkin.scheme");
-	CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().setDefaultImage("AlfiskoSkin/MouseArrow");
-	CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().setVisible( true );
-
-	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
-	gui.sheet = wmgr.createWindow("DefaultWindow", "CEGUIDemo/Sheet");
-	
-	
-	gui.tt1 = static_cast<CEGUI::Tooltip*> (wmgr.createWindow("AlfiskoSkin/Label","tt1"));
-	gui.tt1->setPosition(CEGUI::UVector2(CEGUI::UDim(-0.021,0),CEGUI::UDim(0.075,0)));
-	gui.tt1->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
-	gui.tt1->setText("Accessed files between:");
-	gui.sheet->addChild(gui.tt1);
-
-	gui.d1 = static_cast<CEGUI::Editbox*> (wmgr.createWindow("AlfiskoSkin/Editbox","eb1"));
-	gui.d1->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.105,0)));
-	gui.d1->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
-	gui.d1->setText("02-04-2014");
-	gui.sheet->addChild(gui.d1);
-
-	gui.d2 = static_cast<CEGUI::Editbox*> (wmgr.createWindow("AlfiskoSkin/Editbox","eb2"));
-	gui.d2->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.135,0)));
-	gui.d2->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
-	gui.d2->setText("08-12-2014");
-	gui.sheet->addChild(gui.d2);
-
-	gui.tt2 = static_cast<CEGUI::Tooltip*> (wmgr.createWindow("AlfiskoSkin/Label","tt2"));
-	gui.tt2->setPosition(CEGUI::UVector2(CEGUI::UDim(-0.071,0),CEGUI::UDim(0.170,0)));
-	gui.tt2->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
-	gui.tt2->setText("Sort files by:");
-	gui.sheet->addChild(gui.tt2);
-
-	gui.rb1 = static_cast<CEGUI::RadioButton*> (wmgr.createWindow("AlfiskoSkin/RadioButton","rb1"));
-	gui.rb1->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.2,0)));
-	gui.rb1->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
-	gui.rb1->setText("Last Access Date");
-	gui.rb1->setGroupID(1);
-	gui.rb1->setID(1);
-	gui.rb1->setSelected(true);
-	gui.rb1->setVisible(true);
-	gui.sheet->addChild(gui.rb1);
-
-	gui.rb2 = static_cast<CEGUI::RadioButton*> (wmgr.createWindow("AlfiskoSkin/RadioButton","rb2"));
-	gui.rb2->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.225,0)));
-	gui.rb2->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
-	gui.rb2->setText("Last Modification Date");
-	gui.rb2->setGroupID(1);
-	gui.rb2->setID(2);
-	gui.rb2->setSelected(false);
-	gui.rb2->setVisible(true);
-	gui.sheet->addChild(gui.rb2);
-
-	gui.rb3 = static_cast<CEGUI::RadioButton*> (wmgr.createWindow("AlfiskoSkin/RadioButton","rb3"));
-	gui.rb3->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.250,0)));
-	gui.rb3->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
-	gui.rb3->setText("Creation Date");
-	gui.rb3->setGroupID(1);
-	gui.rb3->setID(3);
-	gui.rb3->setSelected(false);
-	gui.rb3->setVisible(true);
-	gui.sheet->addChild(gui.rb3);
-
-	//toggle button 
-	gui.tb = static_cast<CEGUI::ToggleButton*> (wmgr.createWindow("AlfiskoSkin/Checkbox","toggle"));
-	gui.tb->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.3,0)));
-	gui.tb->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
-	gui.tb->setText("Sort in descending order");
-	gui.sheet->addChild(gui.tb);
-
-	//visualise button
-	gui.visualise_button = wmgr.createWindow("AlfiskoSkin/Button", "visualise_button");
-	gui.visualise_button->setText("Visualise!");
-	gui.visualise_button->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.4,0)));
-	gui.visualise_button->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.05, 0)));
-	gui.visualise_button->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&DigitalForensicsVisualisation::visualise, this));
-	gui.sheet->addChild(gui.visualise_button);
-
-	gui.progress_bar = static_cast<CEGUI::ProgressBar*> (wmgr.createWindow("AlfiskoSkin/ProgressBar","progress_bar"));
-	gui.progress_bar->setPosition(CEGUI::UVector2(CEGUI::UDim(0.5,0),CEGUI::UDim(0.4,0)));
-	gui.progress_bar->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.1, 0)));
-	gui.sheet->addChild(gui.progress_bar);
-	gui.progress_bar->setVisible(false);
-
-	CEGUI::System::getSingleton().getDefaultGUIContext().setRootWindow(gui.sheet);
+	initGUIElements();
 
 #pragma endregion initialise_gui_elements
 	
@@ -737,8 +748,8 @@ bool DigitalForensicsVisualisation::visualise(const CEGUI::EventArgs &e)
 
 	beginProgress();
 
-	const float radius = 2000;
-	const float thickness = 1955;
+	const float radius = 1500;
+	const float thickness = radius - 45;
 	
 
 	try
@@ -1013,11 +1024,7 @@ bool DigitalForensicsVisualisation::updateFrame(const Ogre::FrameEvent& evt)
 	pointLight->setPosition(mCamera->getPosition());
 
 	//leap
-	Frame frame;
-	frame = leapController.frame();
-	
-
-	
+	const Frame frame = leapController.frame();
 	Leap::Hand rightMost = frame.hands().rightmost();
 
 	

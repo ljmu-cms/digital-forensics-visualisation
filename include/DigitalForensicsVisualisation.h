@@ -75,6 +75,8 @@ private:
 
 	GUIElements gui;
 
+	void initGUIElements();
+
 	void beginProgress();
 	void endProgress();
 

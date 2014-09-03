@@ -114,11 +114,18 @@ void scan (const char* directory)
 			app.e.write_permission = (st.st_mode & 00200) ? 1 : 0;
 			app.e.access_permission = (st.st_mode & 00100) ? 1 : 0;
 			
-			app.e.creation_time = ctime(&st.st_ctime);
-			app.e.access_time = ctime(&st.st_atime);
-			app.e.modification_time = ctime(&st.st_mtime);
+			//for successive calls use ctime_s instead of ctime 
+
+			char buffA[50], buffC[50], buffM[50];
+
+			ctime_s(buffC,50,&st.st_ctime);
+			ctime_s(buffA,50,&st.st_atime);
+			ctime_s(buffM,50,&st.st_mtime);
 			
-			
+			app.e.creation_time = buffC;
+			app.e.access_time = buffA;
+			app.e.modification_time = buffM;
+
 			app.e.c = app.e.parseDate(app.e.creation_time);
 			app.e.a = app.e.parseDate(app.e.access_time);
 			app.e.m = app.e.parseDate(app.e.modification_time);
@@ -136,6 +143,9 @@ void scan (const char* directory)
 				<< app.e.creation_time << "', " << "'" << app.e.access_time << "', " << "'" << app.e.modification_time << "', " << "'" << app.e.c << "', " << "'" << app.e.a << "', " << "'" << app.e.m  <<"'); ";
 
 			std::string insertQuery = ss.str();
+
+			OutputDebugString(ss.str().c_str());
+			OutputDebugString("\n");
 
 			mysql_query(mysqlPtr, insertQuery.c_str());
 			
@@ -644,8 +654,8 @@ void DigitalForensicsVisualisation::createScene(void)
 #pragma endregion surface
 
 
-	//const char* dir = "C:/";
-	//scan(dir);
+	const char* dir = "C:/";
+	scan(dir);
 
 #pragma region initialise_gui_elements
 

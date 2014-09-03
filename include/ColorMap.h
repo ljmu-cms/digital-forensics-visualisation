@@ -55,8 +55,14 @@ ColorMap::ColorMap()
 ColorMap::ColorMap(std::string e)
 {
 
+	if (e == "")
+	{
+		r = g = b = 1;
+		return;
+	}
+
 	int ir, ig, ib;
-	ig = ib = ir = toInt(e);
+	ig = ib = ir = toInt(e) * 5791;
 
 	ir = (ir % 45) + 25;
 	ig = (ig % 43) + 25;

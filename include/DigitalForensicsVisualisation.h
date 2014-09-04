@@ -83,7 +83,7 @@ private:
 	std::string parseDateInput(const char*);
 	const std::string buildQuery();
 	const char* const orderIn();
-	const char orderBy();
+	const char selectedRb();
 
 public:
 
@@ -93,6 +93,7 @@ public:
 	unsigned long long int cubeCount;
 	unsigned long long int pyramidCount;
 	unsigned long long int cylinderCount;
+	std::string dbg2;
 	//OgreBites::Label* mInfoLabel;
 
 protected:
@@ -118,7 +119,9 @@ protected:
     virtual bool mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id );
 	
     bool visualise(const CEGUI::EventArgs &e);
-
+	bool rb1StateChanged(const CEGUI::EventArgs &e);
+	bool rb2StateChanged(const CEGUI::EventArgs &e);
+	bool rb3StateChanged(const CEGUI::EventArgs &e);
 	
 };
 

@@ -90,15 +90,21 @@ void Entity::setExtension()
 
 	std::string str(name);
 
-	for (int i = strlen(name); i > 0; i--)
+	for (int i = strlen(name) - 1; i > 0; i--)
 	{
 		if (name[i] == '.')
 		{
 			lastDotIndex = i;
-			break;
+			
+			goto found;
 		}	
 	}
 
+	// not found statement
+	extension = "";
+	return;
+
+	found:
 	std::string str2 = "";
 
 	for (int i = lastDotIndex; i < (strlen(name) -1) ; i++)

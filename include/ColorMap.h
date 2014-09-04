@@ -57,7 +57,7 @@ ColorMap::ColorMap(std::string e)
 
 	if (e == "")
 	{
-		r = g = b = 1;
+		r = g = b = .10;
 		return;
 	}
 

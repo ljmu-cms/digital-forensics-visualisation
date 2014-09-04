@@ -458,13 +458,13 @@ void DigitalForensicsVisualisation::initGUIElements()
 
 	gui.d1 = static_cast<CEGUI::Editbox*> (wmgr.createWindow("AlfiskoSkin/Editbox","eb1"));
 	gui.d1->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.105,0)));
-	gui.d1->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	gui.d1->setSize(CEGUI::USize(CEGUI::UDim(0.20, 0), CEGUI::UDim(0.025, 0)));
 	gui.d1->setText("02-04-2014");
 	gui.sheet->addChild(gui.d1);
 
 	gui.d2 = static_cast<CEGUI::Editbox*> (wmgr.createWindow("AlfiskoSkin/Editbox","eb2"));
-	gui.d2->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.135,0)));
-	gui.d2->setSize(CEGUI::USize(CEGUI::UDim(0.25, 0), CEGUI::UDim(0.025, 0)));
+	gui.d2->setPosition(CEGUI::UVector2(CEGUI::UDim(0,0),CEGUI::UDim(0.137,0)));
+	gui.d2->setSize(CEGUI::USize(CEGUI::UDim(0.20, 0), CEGUI::UDim(0.025, 0)));
 	gui.d2->setText("08-12-2014");
 	gui.sheet->addChild(gui.d2);
 
@@ -482,6 +482,7 @@ void DigitalForensicsVisualisation::initGUIElements()
 	gui.rb1->setID(1);
 	gui.rb1->setSelected(true);
 	gui.rb1->setVisible(true);
+	gui.rb1->subscribeEvent(CEGUI::RadioButton::EventSelectStateChanged, CEGUI::Event::Subscriber(&DigitalForensicsVisualisation::rb1StateChanged, this));
 	gui.sheet->addChild(gui.rb1);
 
 	gui.rb2 = static_cast<CEGUI::RadioButton*> (wmgr.createWindow("AlfiskoSkin/RadioButton","rb2"));
@@ -492,6 +493,7 @@ void DigitalForensicsVisualisation::initGUIElements()
 	gui.rb2->setID(2);
 	gui.rb2->setSelected(false);
 	gui.rb2->setVisible(true);
+	gui.rb2->subscribeEvent(CEGUI::RadioButton::EventSelectStateChanged, CEGUI::Event::Subscriber(&DigitalForensicsVisualisation::rb2StateChanged, this));
 	gui.sheet->addChild(gui.rb2);
 
 	gui.rb3 = static_cast<CEGUI::RadioButton*> (wmgr.createWindow("AlfiskoSkin/RadioButton","rb3"));
@@ -502,6 +504,7 @@ void DigitalForensicsVisualisation::initGUIElements()
 	gui.rb3->setID(3);
 	gui.rb3->setSelected(false);
 	gui.rb3->setVisible(true);
+	gui.rb3->subscribeEvent(CEGUI::RadioButton::EventSelectStateChanged, CEGUI::Event::Subscriber(&DigitalForensicsVisualisation::rb3StateChanged, this));
 	gui.sheet->addChild(gui.rb3);
 
 	//toggle button 
@@ -654,8 +657,8 @@ void DigitalForensicsVisualisation::createScene(void)
 #pragma endregion surface
 
 
-	const char* dir = "C:/";
-	scan(dir);
+	//const char* dir = "C:/";
+	//scan(dir);
 
 #pragma region initialise_gui_elements
 
@@ -709,7 +712,7 @@ std::string DigitalForensicsVisualisation::parseDateInput(const char* date)
 }
 
 //---------------------------------------------------------------------------------------
-const char DigitalForensicsVisualisation::orderBy()
+const char DigitalForensicsVisualisation::selectedRb()
 {
 	return (gui.rb1->isSelected() ? 'a' : gui.rb2->isSelected() ? 'm' : 'c');
 }
@@ -725,10 +728,34 @@ const std::string DigitalForensicsVisualisation::buildQuery ()
 {
 	std::stringstream queryBuilder;
 
-	queryBuilder << "SELECT * FROM file where ( a > " << parseDateInput(gui.d1->getText().c_str()) << " and a < " 
-		<< parseDateInput(gui.d2->getText().c_str()) << " ) order by " << orderBy() << " " << orderIn() << " ;" ; 
+	queryBuilder << "SELECT * FROM file where ( " << selectedRb() << " > " << parseDateInput(gui.d1->getText().c_str()) << " and  " << selectedRb() << " < " 
+		<< parseDateInput(gui.d2->getText().c_str()) << " ) order by " << selectedRb() << " " << orderIn() << " ;" ; 
 
 	return queryBuilder.str();
+}
+
+//---------------------------------------------------------------------------------------
+bool DigitalForensicsVisualisation::rb1StateChanged(const CEGUI::EventArgs &e)
+{
+	if (this->gui.rb1->isSelected())
+		this->gui.tt1->setText("Accessed files between: ");
+	return true;
+}
+
+//---------------------------------------------------------------------------------------
+bool DigitalForensicsVisualisation::rb2StateChanged(const CEGUI::EventArgs &e)
+{
+	if (this->gui.rb2->isSelected())
+		this->gui.tt1->setText("Modified files between: ");
+	return true;
+}
+
+//---------------------------------------------------------------------------------------
+bool DigitalForensicsVisualisation::rb3StateChanged(const CEGUI::EventArgs &e)
+{
+	if (this->gui.rb3->isSelected())
+		this->gui.tt1->setText("Created files between: ");
+	return true;
 }
 
 //---------------------------------------------------------------------------------------
@@ -741,7 +768,7 @@ bool DigitalForensicsVisualisation::visualise(const CEGUI::EventArgs &e)
 		mSceneMgr->destroyAllManualObjects();
 		cubeCount = pyramidCount = cylinderCount = 0;
 
-		for(unsigned long int i = 0; i < textArrIndex; ++i)
+		for (unsigned long int i = 0; i < textArrIndex; ++i)
 		{
 			textArr[textArrIndex]->~MovableText();
 			
@@ -802,7 +829,9 @@ bool DigitalForensicsVisualisation::visualise(const CEGUI::EventArgs &e)
 					app.e.name = row[0];
 					app.e.directory = row[1];
 					app.e.size = std::stoull(row[2]); //for unsigned long long
-					std::string ext = row[3];
+					
+					app.e.setExtension();
+					std::string ext = app.e.extension;
 			
 					for (unsigned int i = 0; i < ext.length(); ++i)
 					{

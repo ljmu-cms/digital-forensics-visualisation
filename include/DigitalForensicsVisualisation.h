@@ -70,6 +70,8 @@ private:
 	Ogre::ManualObject* const cube(bool isFrustum, ColorMap);
 	Ogre::ManualObject* const pyramid(ColorMap);
 	Ogre::ManualObject* const cylinder(ColorMap);
+
+	Ogre::ManualObject* const rectangle();
 	
 
 
@@ -90,6 +92,7 @@ public:
 	Entity e;
     DigitalForensicsVisualisation(void);
     virtual ~DigitalForensicsVisualisation(void);
+	unsigned long long int rectCount;
 	unsigned long long int cubeCount;
 	unsigned long long int pyramidCount;
 	unsigned long long int cylinderCount;

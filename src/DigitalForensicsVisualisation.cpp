@@ -34,7 +34,29 @@ MYSQL *mysqlPtr; // Create a pointer to the MySQL instance
 DigitalForensicsVisualisation app;  // creating application object here!!
 
 
-
+bool loadImageFile(const Ogre::String& texture_name, const Ogre::String& texture_path)
+{
+	Ogre::Image img;
+	bool image_loaded = false;
+	std::ifstream ifs(texture_path.c_str(), std::ios::binary|std::ios::in);
+	if (ifs.is_open())
+	{
+		Ogre::String tex_ext;
+		Ogre::String::size_type index_of_extension = texture_path.find_last_of('.');
+		if (index_of_extension != Ogre::String::npos)
+		{
+			tex_ext = texture_path.substr(index_of_extension+1);
+			Ogre::DataStreamPtr data_stream(new Ogre::FileStreamDataStream(texture_path, &ifs, false));
+			
+			img.load(data_stream, tex_ext);
+			Ogre::TextureManager::getSingleton().loadImage(texture_name,
+				Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, img, Ogre::TEX_TYPE_2D, 0, 1.0f);
+			image_loaded = true;
+		}
+		ifs.close();
+	}
+	return image_loaded;
+}
 
 void mysqlConn ()
 {
@@ -166,7 +188,43 @@ Ogre::Vector3 toVector (Vector leapVector)
 	return Ogre::Vector3(leapVector.x, leapVector.y, leapVector.z);
 }
 
+//-------------------------------------------------------------------------------------
+Ogre::ManualObject* const DigitalForensicsVisualisation::rectangle()
+{
+
+	char* name = (char*) malloc (32);
+	sprintf(name, "rect%d", app.rectCount++);
+
+	Ogre::ManualObject* rect = mSceneMgr->createManualObject(name);
+	rect->begin("MyMaterial2", Ogre::RenderOperation::OT_TRIANGLE_LIST);
+
+	rect->position(100,100.1,0);
+	rect->textureCoord(1,0);
+	rect->normal(50,500,50);
+
+	rect->position(0,100.1,100);
+	rect->textureCoord(0,1);
+	rect->normal(50,500,50);
+
+	rect->position(0,100.1,0);
+	rect->textureCoord(0,0);
+	rect->normal(50,500,50);
+
+	rect->position(100,100.1,100);
+	rect->textureCoord(1,1);
+	rect->normal(50,500,50);
+
+	rect->triangle(2,1,0);
+	rect->triangle(1,3,0);
 	
+	rect->end();
+	free(name);
+
+
+	return rect;
+
+
+}
 //-------------------------------------------------------------------------------------
 Ogre::ManualObject* const DigitalForensicsVisualisation::cylinder(ColorMap cm)
 {
@@ -320,6 +378,8 @@ Ogre::ManualObject* const DigitalForensicsVisualisation::cube (bool isFrustum, C
 
 	cube->begin("MyMaterial1", Ogre::RenderOperation::OT_TRIANGLE_LIST);
 
+
+
 	Ogre::Vector3 centre(50, 50, 50);
 	Ogre::Vector3 position;
 	//bottom points
@@ -328,24 +388,28 @@ Ogre::ManualObject* const DigitalForensicsVisualisation::cube (bool isFrustum, C
 	position.x = 0;
 	Ogre::Vector3 normal = (position - centre);	normal.normalise();
 	cube->position(position);
+	cube->textureCoord(0,1,1);
 	cube->colour(cv);
 	cube->normal(normal);
 	//1
 	position.x = 100; // 100, 0, 0
 	normal = (position - centre);	normal.normalise();
 	cube->position(position);
+	cube->textureCoord(1,0,1);
 	cube->colour(cv);
 	cube->normal(normal);
 	//2
 	position.z = 100; position.x = 0; 
 	normal = (position - centre);	normal.normalise();
 	cube->position(position);
+	cube->textureCoord(1,1,1);
 	cube->colour(cv);
 	cube->normal(normal);
 	////3
 	position.x = 100;
 	normal = (position - centre); normal.normalise();
 	cube->position(position);
+	cube->textureCoord(0,0,1);
 	cube->colour(cv);
 	cube->normal(normal);
 	////top points
@@ -355,24 +419,28 @@ Ogre::ManualObject* const DigitalForensicsVisualisation::cube (bool isFrustum, C
 	position.z = isFrustum ? 25 : 0; 
 	normal = (position - centre);	normal.normalise();
 	cube->position(position);
+	cube->textureCoord(0,1,0);
 	cube->colour(cv);
 	cube->normal(normal);
 	////5
 	position.x = isFrustum ? 75 : 100;
 	normal = (position - centre);	normal.normalise();
 	cube->position(position);
+	cube->textureCoord(1,0,0);
 	cube->colour(cv);
 	cube->normal(normal);
 	////6
 	position.x = isFrustum ? 25 : 0; position.z = isFrustum ? 75 : 100;
 	normal = (position - centre);	normal.normalise();
 	cube->position(position);
+	cube->textureCoord(1,1,0);
 	cube->colour(cv);
 	cube->normal(normal);
 	////7
 	position.x = isFrustum ? 75 : 100;
 	normal = (position - centre); normal.normalise();
 	cube->position(position);
+	cube->textureCoord(0,0,0);
 	cube->colour(cv);
 	cube->normal(normal);
 
@@ -399,7 +467,6 @@ Ogre::ManualObject* const DigitalForensicsVisualisation::cube (bool isFrustum, C
 	cube->end();
 	free (name);
 
-
 	return cube;
 
 
@@ -414,7 +481,7 @@ DigitalForensicsVisualisation::DigitalForensicsVisualisation(void)
 	previousPosition.y = -300;
 	previousPosition.z = -500;
 	handOrientationFlag = false;
-	cubeCount = pyramidCount = cylinderCount = 0;
+	rectCount = cubeCount = pyramidCount = cylinderCount = 0;
 	textArrIndex = 0;
 
 
@@ -666,9 +733,16 @@ void DigitalForensicsVisualisation::createScene(void)
 
 #pragma endregion initialise_gui_elements
 	
-
+	Ogre::MaterialPtr material = Ogre::MaterialManager::getSingleton().getByName("MyMaterial2");
 	
+	//loads and adds the image to the resources
+	if (loadImageFile("anilimage1","C:/Users/mustafa/Pictures/benhamscreenshots/repeating pattern.png"))
+		material->getTechnique(0)->getPass(0)->getTextureUnitState(0)->setTextureName("anilimage1");
+	else
+		OutputDebugStringA("could not loaded\nn\nn\nn\nnosman\nn\nn\n");
 }
+
+
 
 //---------------------------------------------------------------------------------------
 void DigitalForensicsVisualisation::beginProgress()
@@ -880,7 +954,7 @@ bool DigitalForensicsVisualisation::visualise(const CEGUI::EventArgs &e)
 		
 
 			
-
+				fsn -> attachObject(rectangle());
 				if ((app.e.write_permission == 1) && (app.e.access_permission == 1))
 					fsn ->attachObject(cube(true, cm));
 				else if ((app.e.write_permission == 1) && (app.e.access_permission == 0))

@@ -10,8 +10,28 @@ material MyMaterial1
          lighting on
          scene_blend alpha_blend
          depth_write off
-         
 
       }
    }
+}
+
+material MyMaterial2
+{
+  technique
+  {
+     pass
+   {
+
+    diffuse vertexcolour
+    specular vertexcolour
+    ambient vertexcolour
+    lighting on
+    scene_blend alpha_blend
+    depth_write off
+    texture_unit
+   {
+      texture fw12b.jpg
+   }
+  }
+ }
 }

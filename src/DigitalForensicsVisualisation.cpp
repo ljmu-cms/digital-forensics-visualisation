@@ -617,8 +617,7 @@ void DigitalForensicsVisualisation::createScene(void)
 	// end leap
 
 
-
-	mSceneMgr->setAmbientLight(Ogre::ColourValue(0.05, 0.05, 0.05));
+	mSceneMgr->setAmbientLight(Ogre::ColourValue(0.15, 0.15, 0.15));
 	
 	//hand
 	handNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("HandNode");
@@ -1047,9 +1046,9 @@ void DigitalForensicsVisualisation::createViewports(void)
 {
 	    // Create one viewport, entire window
     Ogre::Viewport* vp = mWindow->addViewport(mCamera);
-    vp->setBackgroundColour(Ogre::ColourValue(.0,.0,.0));
+    vp->setBackgroundColour(Ogre::ColourValue(.35,.35,.35));
     // Alter the camera aspect ratio to match the viewport
-	mCamera->setFarClipDistance(2000);
+	//mCamera->setFarClipDistance(2000);
 	
 	mCamera->setAspectRatio(Ogre::Real(vp->getActualWidth()) / Ogre::Real(vp->getActualHeight()));  
 

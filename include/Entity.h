@@ -36,6 +36,7 @@ public:
 	~Entity();
 	int monthNumber (std::string);
 	void setExtension();
+	bool isTextureFile();
 
 	unsigned long parseDate (char* time)
 	{
@@ -60,6 +61,14 @@ public:
 
 };
 
+bool Entity::isTextureFile()
+{
+
+	if (this->extension == "PNG" || this->extension == "JPG" || this->extension == "JPEG" || this->extension == "GIF")
+		return true;
+	else
+		return false;
+}
 
 int Entity::monthNumber (std::string month)
 {

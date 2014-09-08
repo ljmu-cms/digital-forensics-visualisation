@@ -71,7 +71,7 @@ private:
 	Ogre::ManualObject* const pyramid(ColorMap);
 	Ogre::ManualObject* const cylinder(ColorMap);
 
-	Ogre::ManualObject* const rectangle();
+	Ogre::ManualObject* const rectangle(std::string);
 	
 
 

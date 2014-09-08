@@ -189,14 +189,14 @@ Ogre::Vector3 toVector (Vector leapVector)
 }
 
 //-------------------------------------------------------------------------------------
-Ogre::ManualObject* const DigitalForensicsVisualisation::rectangle()
+Ogre::ManualObject* const DigitalForensicsVisualisation::rectangle(std::string matName)
 {
 
 	char* name = (char*) malloc (32);
 	sprintf(name, "rect%d", app.rectCount++);
 
 	Ogre::ManualObject* rect = mSceneMgr->createManualObject(name);
-	rect->begin("MyMaterial2", Ogre::RenderOperation::OT_TRIANGLE_LIST);
+	rect->begin(matName, Ogre::RenderOperation::OT_TRIANGLE_LIST);
 
 	rect->position(100,100.1,0);
 	rect->textureCoord(1,0);
@@ -733,13 +733,7 @@ void DigitalForensicsVisualisation::createScene(void)
 
 #pragma endregion initialise_gui_elements
 	
-	Ogre::MaterialPtr material = Ogre::MaterialManager::getSingleton().getByName("MyMaterial2");
 	
-	//loads and adds the image to the resources
-	if (loadImageFile("anilimage1","C:/Users/mustafa/Pictures/benhamscreenshots/repeating pattern.png"))
-		material->getTechnique(0)->getPass(0)->getTextureUnitState(0)->setTextureName("anilimage1");
-	else
-		OutputDebugStringA("could not loaded\nn\nn\nn\nnosman\nn\nn\n");
 }
 
 
@@ -859,7 +853,7 @@ bool DigitalForensicsVisualisation::visualise(const CEGUI::EventArgs &e)
 
 	beginProgress();
 
-	const float radius = 1500;
+	const float radius = 1000;
 	const float thickness = radius - 45;
 	
 
@@ -885,7 +879,8 @@ bool DigitalForensicsVisualisation::visualise(const CEGUI::EventArgs &e)
 
 		srand(time(NULL));
 
-	
+		
+
 		for (float y = radius - thickness; y <= radius; y += Ogre::Math::PI * 6)
 		{
 
@@ -939,8 +934,41 @@ bool DigitalForensicsVisualisation::visualise(const CEGUI::EventArgs &e)
 				Ogre::SceneNode* container = filesNode->createChildSceneNode(containerName);
 				Ogre::SceneNode* fsn = container->createChildSceneNode(fileName);
 				Ogre::SceneNode* fontNode = container->createChildSceneNode(fontName);
+				Ogre::SceneNode* textureNode;
 
-			
+				if (app.e.isTextureFile())
+				{
+					try
+					{
+					
+						char textureName[50];
+						sprintf(textureName,"texture_%d",itemIndex-1);
+						std::stringstream ss;
+						ss << app.e.directory << "/" << app.e.name;
+						//loads and adds the image to the resources/////
+						
+						Ogre::MaterialPtr material = Ogre::MaterialManager::getSingleton().getByName("MyMaterial2");
+						Ogre::MaterialPtr matClone = material->clone(textureName);
+						loadImageFile(textureName,ss.str());
+						matClone->getTechnique(0)->getPass(0)->getTextureUnitState(0)->setTextureName(textureName);
+						
+						textureNode = container->createChildSceneNode(textureName);
+						textureNode->attachObject(rectangle(textureName));
+						textureNode->setPosition(y * cos(theta), 0, y * sin(theta));
+						textureNode->scale(.09,((float) app.e.size / 20000000 + 0.1),.09);
+					}
+					catch(std::exception e)
+					{
+						
+						OutputDebugStringA("\nm\nm\nm\nm\nm\nm\nm\nm");
+						OutputDebugStringA(e.what());
+					};
+
+
+					
+
+
+				}
 
 				ColorMap cm(app.e.extension);
 			
@@ -954,7 +982,7 @@ bool DigitalForensicsVisualisation::visualise(const CEGUI::EventArgs &e)
 		
 
 			
-				fsn -> attachObject(rectangle());
+				
 				if ((app.e.write_permission == 1) && (app.e.access_permission == 1))
 					fsn ->attachObject(cube(true, cm));
 				else if ((app.e.write_permission == 1) && (app.e.access_permission == 0))
@@ -963,14 +991,12 @@ bool DigitalForensicsVisualisation::visualise(const CEGUI::EventArgs &e)
 				{
 					fsn -> attachObject(pyramid(cm));
 					fsn -> scale (1.3, 1.3, 1.3);
-					fsn ->setPosition(Ogre::Vector3(fsn->getPosition().x + 1,fsn->getPosition().y,fsn->getPosition().z + 1));
 				}
 				else
 				{
 					fsn->attachObject(cylinder(cm));
-					const Ogre::Vector3 pos =fsn->getPosition();
 					fsn->pitch((Ogre::Radian) Ogre::Math::PI);
-					fsn->setPosition(pos);
+					
 				}
 				std::stringstream ss;
 				ss << "file name: " << app.e.name << "\n\nlast access time: " << app.e.access_time << "\nmodification time: " 

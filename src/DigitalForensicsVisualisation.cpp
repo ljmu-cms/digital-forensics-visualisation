@@ -1190,6 +1190,8 @@ bool DigitalForensicsVisualisation::updateFrame(const Ogre::FrameEvent& evt)
 
 		Leap::Hand rightMost = frame.hands().rightmost();
 		
+
+
 		float pitchValue = rightMost.direction().pitch() * RAD_TO_DEG;
 		float rollValue = rightMost.palmNormal().roll() * RAD_TO_DEG;
 		float yawValue = rightMost.direction().yaw() * RAD_TO_DEG;
@@ -1213,12 +1215,13 @@ bool DigitalForensicsVisualisation::updateFrame(const Ogre::FrameEvent& evt)
 			//mCamera->roll((Ogre::Radian) (rollValue - previousFrameRoll) / 30);
 			
 		}
-		else if (angle > 0.8)
+		else if (angle > 0.8 )
 		{
 			
 			//palmNode->setPosition(toVector(frame.hands().rightmost().palmPosition())); // between 100 and 250	
-			mCamera->setPosition(mCamera->getPosition() + (toVector(frame.hands().rightmost().palmPosition()) - previousPosition)*2 );
-			
+			if ((mCamera->getPosition().y + (frame.hands().rightmost().palmPosition().y - previousPosition.y)*2 ) > -290)
+				mCamera->setPosition(mCamera->getPosition() + (toVector(frame.hands().rightmost().palmPosition()) - previousPosition)*2 );
+
 			
 		}
 		//else

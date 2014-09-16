@@ -158,7 +158,7 @@ void scan (const char* directory)
 
 
 			std::stringstream ss;
-			ss << "INSERT INTO `test`.`file` ( `name`, `directory`, `size`, `extension`, `write_permission`,`access_permission`, `c_time`,`a_time`,`m_time`,`c`,`a`,`m`) VALUES ("<< "'"
+			ss << "INSERT INTO `test`.`evidence` ( `name`, `directory`, `size`, `extension`, `write_permission`,`access_permission`, `c_time`,`a_time`,`m_time`,`c`,`a`,`m`) VALUES ("<< "'"
 				<< app.e.name << "', " << "'"
 				<< app.e.directory << "', " << "'" << app.e.size << "', " << "'" << app.e.extension << "', " << "'" 
 				<< app.e.write_permission << "', " << "'" << app.e.access_permission << "', " << "'" 
@@ -722,9 +722,9 @@ void DigitalForensicsVisualisation::createScene(void)
 
 #pragma endregion surface
 
-
-	//const char* dir = "C:/";
-	//scan(dir);
+/*
+	const char* dir = "E:/";
+	scan(dir);*/
 
 #pragma region initialise_gui_elements
 
@@ -795,7 +795,7 @@ const std::string DigitalForensicsVisualisation::buildQuery ()
 {
 	std::stringstream queryBuilder;
 
-	queryBuilder << "SELECT * FROM file where ( " << selectedRb() << " > " << parseDateInput(gui.d1->getText().c_str()) << " and  " << selectedRb() << " < " 
+	queryBuilder << "SELECT * FROM evidence where ( " << selectedRb() << " > " << parseDateInput(gui.d1->getText().c_str()) << " and  " << selectedRb() << " < " 
 		<< parseDateInput(gui.d2->getText().c_str()) << " ) order by " << selectedRb() << " " << orderIn() << " ;" ; 
 
 	return queryBuilder.str();
@@ -934,8 +934,8 @@ bool DigitalForensicsVisualisation::visualise(const CEGUI::EventArgs &e)
 				Ogre::SceneNode* fsn = container->createChildSceneNode(fileName);
 				Ogre::SceneNode* fontNode = container->createChildSceneNode(fontName);
 				Ogre::SceneNode* textureNode;
-
-				if (app.e.isTextureFile())
+				bool isTexture = app.e.isTextureFile();
+				if (isTexture)
 				{
 					try
 					{
@@ -995,6 +995,8 @@ bool DigitalForensicsVisualisation::visualise(const CEGUI::EventArgs &e)
 				{
 					fsn->attachObject(cylinder(cm));
 					fsn->pitch((Ogre::Radian) Ogre::Math::PI);
+					if (isTexture)
+						textureNode->scale(.8,1,.8);
 					
 				}
 				std::stringstream ss;
@@ -1051,6 +1053,7 @@ void DigitalForensicsVisualisation::createViewports(void)
 	//mCamera->setFarClipDistance(2000);
 	
 	mCamera->setAspectRatio(Ogre::Real(vp->getActualWidth()) / Ogre::Real(vp->getActualHeight()));  
+	mCamera->pitch(static_cast <Ogre::Radian>(-0.45));
 
 }
 
@@ -1206,16 +1209,13 @@ bool DigitalForensicsVisualisation::updateFrame(const Ogre::FrameEvent& evt)
 
 		if (rightMost.grabStrength() == 1)
 		{
-			/*char* dummy = (char*) malloc(8);
-			sprintf (dummy, "%f\n", rightMost.grabStrength()); 
-			OutputDebugString(dummy);
-			free (dummy);*/
-			mCamera->pitch((Ogre::Radian) (rightMost.palmPosition().y - previousPosition.y) / 80);
+			if (mCamera->getOrientation().getPitch() + (Ogre::Radian) (rightMost.palmPosition().y - previousPosition.y) / 80 < (Ogre::Radian) 0.17 && mCamera->getOrientation().getPitch() + (Ogre::Radian) (rightMost.palmPosition().y - previousPosition.y) / 80 > (Ogre::Radian) -1.4)
+				mCamera->pitch((Ogre::Radian) (rightMost.palmPosition().y - previousPosition.y) / 80);
 			//mCamera->yaw((Ogre::Radian) (rightMost.palmPosition().x - previousPosition.x) / -80);
 			//mCamera->roll((Ogre::Radian) (rollValue - previousFrameRoll) / 30);
 			
 		}
-		else if (angle > 0.8 )
+		else if (angle > 0.65)
 		{
 			
 			//palmNode->setPosition(toVector(frame.hands().rightmost().palmPosition())); // between 100 and 250	

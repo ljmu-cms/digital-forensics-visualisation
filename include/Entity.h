@@ -64,7 +64,7 @@ public:
 bool Entity::isTextureFile()
 {
 
-	if (this->extension == "PNG" || this->extension == "JPG" || this->extension == "JPEG" || this->extension == "GIF")
+	if (this->extension == "PNG" || this->extension == "JPG" || this->extension == "JPEG" || this->extension == "GIF" || this->extension == "ICO")
 		return true;
 	else
 		return false;
